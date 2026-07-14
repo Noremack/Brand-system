@@ -1,0 +1,315 @@
+/**
+ * @file LayoutEngine.jsx
+ * @description Handles document geometry, margins, layer stratification, and master page allocations.
+ */
+
+/**
+ * Analyzes the target document's bounds and matches it against the configured page matrix.
+ * @param {Document} doc - The active InDesign document.
+ * @returns {Object} The matched layout metrics (e.g., A4, A3) or a custom fallback.
+ */
+function analyzeDocumentMetrics(doc) {
+    if (!doc || !doc.isValid) throw new Error("Invalid document reference passed.");
+    Logger.startTimer("Analyze Document Metrics");
+    var oldUnit = app.scriptPreferences.measurementUnit;
+    app.scriptPreferences.measurementUnit = MeasurementUnits.MILLIMETERS;
+
+    var page = doc.pages[0]; var bounds = page.bounds; 
+    var h = Math.abs(bounds[2] - bounds[0]); var w = Math.abs(bounds[3] - bounds[1]);
+    
+    app.scriptPreferences.measurementUnit = oldUnit;
+
+    var s = Math.min(w, h); var l = Math.max(w, h);
+    var pLen = config.pageMatrix.length;
+    for (var i = 0; i < pLen; i++) {
+        if (Math.abs(s - config.pageMatrix[i].shortEdge) <= 2 && Math.abs(l - config.pageMatrix[i].longEdge) <= 2) {
+            Logger.endTimer("Analyze Document Metrics", "Matched: " + config.pageMatrix[i].name);
+            return config.pageMatrix[i];
+        }
+    }
+    Logger.endTimer("Analyze Document Metrics", "Matched: Custom Fallback");
+    var customMargin = Math.max(12, Math.round(s * 0.05));
+    
+    if (app.scriptArgs.getValue("BrandSystem_Silent") !== "true") {
+        try {
+            var userInput = prompt("Custom format detected.\n\nEnter desired margin (mm):", customMargin, "Brand System Generator");
+            if (userInput !== null && !isNaN(parseFloat(userInput))) {
+                customMargin = parseFloat(userInput);
+            }
+        } catch(e) {
+            Logger.warn("Failed to prompt for custom margin: " + e.message);
+        }
+    }
+    var fallbackMasters = config.fallbackMetrics && config.fallbackMetrics.masters ? config.fallbackMetrics.masters : ["Cover", "Content", "Back"];
+    return { name: "Custom", formatStr: "Custom", margin: customMargin, gutter: customMargin, bleed: 3, baseFont: 12, footerHeightLandscape: Math.round(s * 0.12), footerHeightPortrait: Math.round(l * 0.12), masters: fallbackMasters };
+}
+
+/**
+ * Enforces strict Z-index ordering and naming conventions for required document layers.
+ * Creates missing layers and optionally hijacks existing default layers.
+ * @param {Document} doc - The active InDesign document.
+ */
+function enforceLayerStratification(doc) {
+    Logger.startTimer("Enforce Layer Stratification");
+    var mat = config.layerMatrix;
+    var docLayers = doc.layers.everyItem().getElements();
+    var lLen = docLayers.length;
+    
+    for (var i = mat.length - 1; i >= 0; i--) {
+        var lDef = mat[i];
+        var targetLayer = null;
+
+        for (var j = 0; j < lLen; j++) {
+            if (docLayers[j].isValid && docLayers[j].name.toLowerCase() === lDef.name.toLowerCase()) {
+                targetLayer = docLayers[j];
+                break;
+            }
+        }
+
+        if (!targetLayer && lDef.aliases && lDef.aliases.length > 0) {
+            var aLen = lDef.aliases.length;
+            for (var a = 0; a < aLen; a++) {
+                for (var k = 0; k < lLen; k++) {
+                    if (docLayers[k].isValid && docLayers[k].name.toLowerCase() === lDef.aliases[a].toLowerCase()) {
+                        targetLayer = docLayers[k];
+                        break;
+                    }
+                }
+                if (targetLayer) break;
+            }
+        }
+
+        if (!targetLayer) {
+            Logger.info("Creating new layer: " + lDef.name);
+            targetLayer = doc.layers.add({ name: lDef.name, layerColor: lDef.color });
+        } else {
+            Logger.info("Hijacked existing layer for: " + lDef.name);
+            try { targetLayer.name = lDef.name; } catch(e) { Logger.warn("Failed to rename layer to " + lDef.name + ": " + e.message); } 
+            targetLayer.layerColor = lDef.color; 
+            targetLayer.locked = false;
+            targetLayer.visible = true;
+        }
+        
+        if (lDef.name === "Background") {
+            try { targetLayer.move(LocationOptions.AT_END); } catch(e){ Logger.warn("Failed to move Background layer to bottom: " + e.message); }
+        } else if (targetLayer.index !== 0) {
+            try { targetLayer.move(LocationOptions.BEFORE, doc.layers[0]); } catch(e){ Logger.warn("Failed to move layer " + lDef.name + ": " + e.message); }
+        }
+    }
+    Logger.endTimer("Enforce Layer Stratification", "Processed " + mat.length + " constraints");
+}
+
+/**
+ * Evaluates existing master pages, renames them, and applies layout constraints (margins/gutters).
+ * @param {Document} doc - The active InDesign document.
+ * @param {Object} layoutMetrics - Active layout constraints.
+ */
+function applyBrandLayout(doc, layoutMetrics) {
+    if (!doc || !doc.isValid) throw new Error("Invalid document reference passed.");
+    Logger.startTimer("Apply Brand Layout");
+    Logger.info("Target Layout Metrics - Margin: " + layoutMetrics.margin + "mm, Gutter: " + layoutMetrics.gutter + "mm");
+    try { doc.adjustLayoutPreferences.enableAdjustLayout = true; } catch (e) { try { doc.layoutAdjustmentPreferences.enableLayoutAdjustment = true; } catch (err) { Logger.warn("Layout adjustment not supported: " + err.message); } }
+    
+    var pB = doc.pages[0].bounds;
+    var docH = Math.abs(pB[2] - pB[0]);
+    var docW = Math.abs(pB[3] - pB[1]);
+
+    var allowedMasters = layoutMetrics.masters || ["Cover", "Content", "Back"];
+    var needsCover = false, needsContent = false, needsBack = false;
+    for (var am = 0; am < allowedMasters.length; am++) {
+        if (allowedMasters[am] === "Cover") needsCover = true;
+        if (allowedMasters[am] === "Content") needsContent = true;
+        if (allowedMasters[am] === "Back") needsBack = true;
+    }
+
+    var requiredMasters = [];
+    if (needsCover) requiredMasters.push({ p: "A", n: "Cover", searchStr: "cover", aliases: ["a-master", "a-parent"] });
+    if (needsContent) requiredMasters.push({ p: "B", n: "Content", searchStr: "content", aliases: ["b-master", "b-parent"] });
+    if (needsBack) requiredMasters.push({ p: "C", n: "Back", searchStr: "back", aliases: ["c-master", "c-parent"] });
+
+    var tempMasters = doc.masterSpreads.everyItem().getElements();
+    for (var tm = tempMasters.length - 1; tm >= 0; tm--) {
+        if (!tempMasters[tm].isValid) continue;
+        var isB = (tempMasters[tm].namePrefix === "B" && tempMasters[tm].baseName === "Content");
+        var isC = (tempMasters[tm].namePrefix === "C" && tempMasters[tm].baseName === "Back");
+        
+        var shouldRemove = false;
+        if (isB && !needsContent) shouldRemove = true;
+        if (isC && !needsBack) shouldRemove = true;
+
+        if (shouldRemove) {
+            var m = tempMasters[tm];
+            var appliedPages = doc.pages.everyItem().getElements();
+            for (var p = 0; p < appliedPages.length; p++) {
+                if (appliedPages[p].appliedMaster === m) {
+                    appliedPages[p].appliedMaster = null; 
+                }
+            }
+            var removedName = m.name;
+            try { m.remove(); Logger.info("Removed unneeded master: " + removedName); } catch(e) { Logger.warn("Failed to remove master " + removedName + ": " + e.message); }
+        }
+    }
+
+    var mastersArr = doc.masterSpreads.everyItem().getElements();
+    var mLen = mastersArr.length;
+    var rLen = requiredMasters.length;
+
+    for (var r = 0; r < rLen; r++) {
+        var req = requiredMasters[r];
+        var found = false;
+        
+        for (var m = 0; m < mLen; m++) {
+            if (mastersArr[m].isValid && mastersArr[m].namePrefix === req.p && mastersArr[m].baseName === req.n) {
+                found = true; break;
+            }
+        }
+        
+        if (!found) {
+            for (var m = 0; m < mLen; m++) {
+                if (mastersArr[m].isValid && mastersArr[m].name.toLowerCase().indexOf(req.searchStr) !== -1) {
+                    mastersArr[m].namePrefix = req.p;
+                    mastersArr[m].baseName = req.n;
+                    found = true; break;
+                }
+            }
+        }
+        
+        if (!found && req.aliases.length > 0) {
+            var aLen = req.aliases.length;
+            for (var a = 0; a < aLen; a++) {
+                for (var m = 0; m < mLen; m++) {
+                    if (mastersArr[m].isValid && mastersArr[m].name.toLowerCase() === req.aliases[a]) {
+                        mastersArr[m].namePrefix = req.p;
+                        mastersArr[m].baseName = req.n;
+                        found = true; break;
+                    }
+                }
+                if (found) break;
+            }
+        }
+
+        if (!found) {
+            for (var m = 0; m < mLen; m++) {
+                if (mastersArr[m].isValid && mastersArr[m].namePrefix === req.p) {
+                    mastersArr[m].baseName = req.n;
+                    found = true; break;
+                }
+            }
+        }
+        
+        if (!found) {
+            Logger.info("Creating new master spread: " + req.p + "-" + req.n);
+            var newM = doc.masterSpreads.add();
+            newM.namePrefix = req.p;
+            newM.baseName = req.n;
+        }
+    }
+
+    mastersArr = doc.masterSpreads.everyItem().getElements();
+    
+    var aCoverMaster = null; var bContentMaster = null;
+    for (var m = 0; m < mastersArr.length; m++) {
+        if (mastersArr[m].namePrefix === "A" && mastersArr[m].baseName === "Cover") aCoverMaster = mastersArr[m];
+        if (mastersArr[m].namePrefix === "B" && mastersArr[m].baseName === "Content") bContentMaster = mastersArr[m];
+    }
+    
+    var docPages = doc.pages.everyItem().getElements();
+    for (var pg = 0; pg < docPages.length; pg++) {
+        if (!docPages[pg].isValid) continue;
+        var currM = docPages[pg].appliedMaster;
+        if (!currM || !currM.isValid || currM.name === "A-Master" || currM.name === "A-Parent") {
+            
+            var pItems = docPages[pg].pageItems.everyItem().getElements();
+            for (var pi = 0; pi < pItems.length; pi++) {
+                var item = pItems[pi];
+                try {
+                    if (item.isValid && item.masterPage !== null) {
+                        item.detach();
+                    }
+                } catch(e) { Logger.warn("Failed to detach master page item: " + e.message); }
+            }
+
+            if (pg === 0 && aCoverMaster && aCoverMaster.isValid) {
+                docPages[pg].appliedMaster = aCoverMaster;
+                Logger.info("Auto-mapped Page " + docPages[pg].name + " to A-Cover");
+            } else if (needsContent && bContentMaster && bContentMaster.isValid) {
+                docPages[pg].appliedMaster = bContentMaster;
+                Logger.info("Auto-mapped Page " + docPages[pg].name + " to B-Content");
+            } else if (!needsContent && aCoverMaster && aCoverMaster.isValid) {
+                docPages[pg].appliedMaster = aCoverMaster;
+                Logger.info("Auto-mapped Page " + docPages[pg].name + " to A-Cover (Default Fallback)");
+            }
+        }
+    }
+    
+    if (aCoverMaster && aCoverMaster.isValid) {
+        for (var m = mastersArr.length - 1; m >= 0; m--) {
+            if (mastersArr[m].isValid && (mastersArr[m].name === "A-Master" || mastersArr[m].name === "A-Parent")) {
+                var oldName = mastersArr[m].name;
+                if (mastersArr[m].pageItems.length === 0) {
+                    try { mastersArr[m].remove(); Logger.info("Removed empty default master: " + oldName); } catch(e) { Logger.warn("Failed to remove empty default master: " + e.message); }
+                } else {
+                    Logger.info("Kept default master '" + oldName + "' because it contains user items.");
+                }
+            }
+        }
+    }
+
+    var lt = config.designTokens.layout;
+    var finalMasters = doc.masterSpreads.everyItem().getElements();
+
+    for (var i = 0; i < finalMasters.length; i++) {
+        if (!finalMasters[i].isValid) continue;
+        var mName = finalMasters[i].name.toLowerCase();
+        var isCover = (mName.indexOf("cover") !== -1);
+        var isBack = (mName.indexOf("back") !== -1);
+        var isCoverOrBack = isCover || isBack;
+        var isAboveA3 = Math.max(docW, docH) > 420;
+        
+        if (isCoverOrBack) {
+            try {
+                while (finalMasters[i].pages.length > 1) {
+                    finalMasters[i].pages.firstItem().remove(); 
+                }
+            } catch(e) { Logger.warn("Failed to set " + mName + " as single page: " + e.message); }
+        }
+        
+        var calculatedTopMargin = (isCover && !isAboveA3) ? (layoutMetrics.margin * lt.coverMarginRatio) : layoutMetrics.margin;
+        var calculatedBottomMargin = (isCoverOrBack && !isAboveA3) ? (layoutMetrics.margin * lt.coverMarginRatio) : layoutMetrics.margin;
+        
+        var finalTopMargin = Math.max(calculatedTopMargin, lt.absoluteMinMarginMm);
+        var finalBottomMargin = Math.max(calculatedBottomMargin, lt.absoluteMinMarginMm);
+
+        Logger.info("Applying Master Margins [" + mName + "] - T: " + finalTopMargin + "mm, B: " + finalBottomMargin + "mm, L/R: " + layoutMetrics.margin + "mm");
+
+        var mPages = finalMasters[i].pages.everyItem().getElements();
+        var mpLen = mPages.length;
+        for (var j = 0; j < mpLen; j++) { 
+            if (mPages[j].isValid) mPages[j].marginPreferences.properties = { top: finalTopMargin + "mm", bottom: finalBottomMargin + "mm", left: layoutMetrics.margin + "mm", right: layoutMetrics.margin + "mm", columnGutter: layoutMetrics.gutter + "mm" }; 
+        }
+    }
+    
+    var pagesArr = doc.pages.everyItem().getElements();
+    var pgLen = pagesArr.length;
+    for (var k = 0; k < pgLen; k++) {
+        if (!pagesArr[k].isValid) continue;
+        var isCoverPage = false;
+        var isBackPage = false;
+        if (pagesArr[k].appliedMaster !== null) { 
+            var pmName = pagesArr[k].appliedMaster.name.toLowerCase();
+            isCoverPage = (pmName.indexOf("cover") !== -1);
+            isBackPage = (pmName.indexOf("back") !== -1);
+        }
+        var isCoverOrBackPage = isCoverPage || isBackPage;
+        var isAboveA3Page = Math.max(docW, docH) > 420;
+        
+        var calculatedTopMargin = (isCoverPage && !isAboveA3Page) ? (layoutMetrics.margin * lt.coverMarginRatio) : layoutMetrics.margin;
+        var calculatedBottomMargin = (isCoverOrBackPage && !isAboveA3Page) ? (layoutMetrics.margin * lt.coverMarginRatio) : layoutMetrics.margin;
+        
+        var finalTopMargin = Math.max(calculatedTopMargin, lt.absoluteMinMarginMm);
+        var finalBottomMargin = Math.max(calculatedBottomMargin, lt.absoluteMinMarginMm);
+
+        pagesArr[k].marginPreferences.properties = { top: finalTopMargin + "mm", bottom: finalBottomMargin + "mm", left: layoutMetrics.margin + "mm", right: layoutMetrics.margin + "mm", columnGutter: layoutMetrics.gutter + "mm" };
+    }
+    Logger.endTimer("Apply Brand Layout");
+}

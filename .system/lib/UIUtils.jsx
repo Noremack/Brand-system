@@ -1,0 +1,126 @@
+/**
+ * @file UIUtils.jsx
+ * @description Shared UI and preferences utilities for the Brand System dashboard dialogs.
+ */
+var UIUtils = {
+    loadPreferences: function() {
+        var prefFile = new File(Folder.userData + "/BrandSystem_Prefs.jsx");
+        if (prefFile.exists) {
+            try { 
+                prefFile.open('r'); 
+                var content = prefFile.read(); 
+                prefFile.close(); 
+                return eval(content); 
+            } catch (e) {
+                if (typeof BrandSystem !== "undefined" && BrandSystem.Logger) {
+                    BrandSystem.Logger.warn("Failed to load preferences: " + e.message);
+                }
+            }
+        }
+        return {};
+    },
+
+    savePreferences: function(newPrefs) {
+        var prefFile = new File(Folder.userData + "/BrandSystem_Prefs.jsx");
+        var existingPrefs = this.loadPreferences();
+        var mergedPrefs = {};
+        for (var exKey in existingPrefs) mergedPrefs[exKey] = existingPrefs[exKey];
+        for (var nKey in newPrefs) mergedPrefs[nKey] = newPrefs[nKey];
+        
+        try {
+            prefFile.open('w');
+            var str = "({\n";
+            for (var k in mergedPrefs) {
+                var val = mergedPrefs[k];
+                if (typeof val === 'string') {
+                    str += "  " + k + ": '" + val.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "',\n";
+                } else if (typeof val === 'boolean' || typeof val === 'number') {
+                    str += "  " + k + ": " + val + ",\n";
+                } else if (val instanceof Array) {
+                    str += "  " + k + ": [";
+                    for (var i = 0; i < val.length; i++) {
+                        if (typeof val[i] === 'string') {
+                            str += "'" + val[i].replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "',";
+                        } else {
+                            str += val[i] + ",";
+                        }
+                    }
+                    str += "],\n";
+                }
+            }
+            str += "})\n";
+            prefFile.write(str);
+            prefFile.close();
+        } catch (e) {
+            if (typeof BrandSystem !== "undefined" && BrandSystem.Logger) {
+                BrandSystem.Logger.warn("Failed to save preferences: " + e.message);
+            }
+        }
+    },
+
+    getPref: function(userPrefs, key, fallback) { 
+        return userPrefs[key] !== undefined ? userPrefs[key] : fallback; 
+    },
+
+    scanForExtensions: function(path) {
+        var exts = {};
+        try {
+            var f = new Folder(path);
+            if (f.exists) {
+                var files = f.getFiles();
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i] instanceof File) {
+                        var match = files[i].name.match(/\.([a-z0-9]+)$/i);
+                        if (match) {
+                            var extStr = "." + match[1].toLowerCase();
+                            if (extStr === ".svg" || extStr === ".eps" || extStr === ".png" || extStr === ".jpg") {
+                                exts[extStr] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            if (typeof BrandSystem !== "undefined" && BrandSystem.Logger) {
+                BrandSystem.Logger.warn("Failed to scan for extensions: " + e.message);
+            }
+        }
+        var result = []; 
+        for (var k in exts) result.push(k); 
+        return result;
+    },
+
+    updateFormatDropdown: function(dirInputText, extDropdown, savedFmt) {
+        var exts = this.scanForExtensions(dirInputText);
+        extDropdown.removeAll();
+        if (exts.length === 0) {
+            extDropdown.add("item", "None Found"); 
+            extDropdown.selection = 0; 
+            extDropdown.enabled = false;
+        } else {
+            extDropdown.enabled = true;
+            for (var i = 0; i < exts.length; i++) { 
+                extDropdown.add("item", exts[i]); 
+            }
+            var found = false;
+            for (var j = 0; j < extDropdown.items.length; j++) { 
+                if (extDropdown.items[j].text === savedFmt) { 
+                    extDropdown.selection = j; 
+                    found = true; 
+                    break; 
+                } 
+            }
+            if (!found && exts.length > 0) extDropdown.selection = 0;
+        }
+    },
+
+    addInputRow: function(parent, label, defaultVal, suffix, tooltip) { 
+        var r = parent.add("group"); 
+        r.add("statictext", undefined, label).preferredSize.width = 100; 
+        var i = r.add("edittext", undefined, String(defaultVal)); 
+        i.preferredSize.width = 140; 
+        if (tooltip) i.helpTip = tooltip; 
+        if (suffix) r.add("statictext", undefined, suffix).preferredSize.width = 30; 
+        return i; 
+    }
+};
