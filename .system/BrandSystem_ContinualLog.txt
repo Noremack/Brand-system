@@ -45623,3 +45623,166 @@ OS: Windows 10/64 10.0
 [INFO] 09:49:29 - Successfully saved: card-contact card-landscape-90-55mm.indt
 [WARN] 09:49:29 - === BATCH GENERATION REPORT REQUESTED ===
 ========================================
+
+
+========================================
+=== BRAND SYSTEM EXECUTION LOG ===
+Status: SUCCESS
+Timestamp: Tue Jul 14 2026 10:34:06 GMT+1000
+InDesign Version: 21.3.0.60
+OS: Windows 10/64 10.0  
+
+=== EXECUTION TRACE ===
+[INFO] 10:33:58 - STARTED: Analyze Document Metrics
+[INFO] 10:33:58 - COMPLETED: Analyze Document Metrics in 1ms (Matched: A4)
+[INFO] 10:34:01 - STARTED: Total Execution
+[INFO] 10:34:01 - STARTED: Reset Document
+[INFO] 10:34:01 - Reset: Clearing 28 items from master page 'A-Cover'
+[INFO] 10:34:01 - Reset: Clearing 4 items from master page 'B-Content'
+[INFO] 10:34:01 - Reset: Clearing 3 items from master page 'C-Back'
+[INFO] 10:34:02 - COMPLETED: Reset Document in 994ms
+[INFO] 10:34:02 - STARTED: Build Color Engine
+[INFO] 10:34:02 - COMPLETED: Build Color Engine in 32ms (Swatches: 14, Gradients: 5)
+[INFO] 10:34:02 - STARTED: Load Format Template
+[INFO] 10:34:03 - COMPLETED: Load Format Template in 1301ms (Loaded styles from A4)
+[INFO] 10:34:03 - Applying master layout constraints dynamically.
+[INFO] 10:34:03 - STARTED: Apply Brand Layout
+[INFO] 10:34:03 - Target Layout Metrics - Margin: 12mm, Gutter: 12mm
+[INFO] 10:34:03 - Applying Master Margins [a-cover] - T: 6mm, B: 6mm, L/R: 12mm
+[INFO] 10:34:03 - Applying Master Margins [b-content] - T: 12mm, B: 12mm, L/R: 12mm
+[INFO] 10:34:03 - Applying Master Margins [c-back] - T: 12mm, B: 6mm, L/R: 12mm
+[INFO] 10:34:03 - COMPLETED: Apply Brand Layout in 8ms
+[INFO] 10:34:03 - STARTED: Inject Header Graphic
+[INFO] 10:34:03 - Found texture asset for header: texture-landscape.eps
+[INFO] 10:34:04 - Forcing inclusion of 'Brand bar - Wordmark Background' because header asset was found.
+[INFO] 10:34:04 - Placing Brand bar - Small on page A bounds: 0, 0, 296.999999999461, 209.999999999936. Scaled Height: 12mm
+[INFO] 10:34:04 - Applying header geometricBounds: -3mm, -3mm, 12mm, 197.999999999936mm
+[INFO] 10:34:04 - Placed and aligned texture in Brand bar - Small
+[INFO] 10:34:04 - Embedded texture graphic in Brand bar - Small
+[INFO] 10:34:04 - Placing Brand bar - Large on page A bounds: 0, 0, 296.999999999461, 209.999999999936. Scaled Height: 179.999999999673mm
+[INFO] 10:34:04 - Applying header geometricBounds: -3mm, -3mm, 179.999999999673mm, 197.999999999936mm
+[INFO] 10:34:04 - Placed and aligned texture in Brand bar - Large
+[INFO] 10:34:04 - Embedded texture graphic in Brand bar - Large
+[INFO] 10:34:04 - Placing Brand bar - Full on page A bounds: 0, 0, 296.999999999461, 209.999999999936. Scaled Height: 248.999999999461mm
+[INFO] 10:34:04 - Applying header geometricBounds: -3mm, -3mm, 248.999999999461mm, 197.999999999936mm
+[INFO] 10:34:04 - Placed and aligned texture in Brand bar - Full
+[INFO] 10:34:04 - Embedded texture graphic in Brand bar - Full
+[INFO] 10:34:04 - Placing Brand bar - Wordmark Background on page A bounds: 0, 0, 296.999999999461, 209.999999999936. Scaled Height: 23mm
+[INFO] 10:34:04 - Applying header geometricBounds: -3mm, -3mm, 23mm, 197.999999999936mm
+[INFO] 10:34:04 - Placed and aligned texture in Brand bar - Wordmark Background
+[INFO] 10:34:04 - Embedded texture graphic in Brand bar - Wordmark Background
+[INFO] 10:34:04 - Found requested header image via hybrid match: header-Wordmark-A4.eps
+[INFO] 10:34:04 - Applying dynamic header image geometricBounds: 6mm, 145.927224498261mm, 17.9999835120307mm, 189.999999999936mm
+[INFO] 10:34:04 - Embedded header graphic.
+[INFO] 10:34:04 - Updated Brand bar - Wordmark Background dynamic height to: 25.9999835120307mm
+[INFO] 10:34:04 - COMPLETED: Inject Header Graphic in 1068ms
+[INFO] 10:34:04 - STARTED: Inject Footer Graphic
+[INFO] 10:34:04 - Footer directory set to: C:\Work\EPS/
+[INFO] 10:34:04 - Found requested asset via hybrid match: footer-A4-portrait-with-margin-Q.eps
+[INFO] 10:34:05 - Found requested asset via hybrid match: footer-A4-portrait-with-margin-Q-QR.eps
+[INFO] 10:34:05 - Found requested asset via hybrid match: footer-A4-portrait-with-margin-BA.eps
+[INFO] 10:34:05 - Found requested asset via hybrid match: footer-A4-portrait-with-margin-BA-QR-Wordmark.eps
+[INFO] 10:34:05 - Found requested asset via hybrid match: footer-A4-portrait-with-margin-DRFA-Wordmark.eps
+[INFO] 10:34:05 - Placing footer on page A bounds: 0, 0, 296.999999999461, 209.999999999936
+[INFO] 10:34:05 - Applying dynamic footer geometricBounds for Q: 270.999995513667mm, 0mm, 296.999999999461mm, 209.999999999936mm
+[INFO] 10:34:05 - Embedded footer graphic: Q
+[INFO] 10:34:05 - Applying dynamic footer geometricBounds for Q-QR: 270.999995513667mm, 0mm, 296.999999999461mm, 209.999999999936mm
+[INFO] 10:34:05 - Embedded footer graphic: Q-QR
+[INFO] 10:34:05 - Applying dynamic footer geometricBounds for BA: 270.999995513667mm, 0mm, 296.999999999461mm, 209.999999999936mm
+[INFO] 10:34:05 - Embedded footer graphic: BA
+[INFO] 10:34:05 - Applying dynamic footer geometricBounds for BA-QR: 270.999995513667mm, 0mm, 296.999999999461mm, 209.999999999936mm
+[INFO] 10:34:05 - Embedded footer graphic: BA-QR
+[INFO] 10:34:05 - Applying dynamic footer geometricBounds for DRFA: 270.999995513667mm, 0mm, 296.999999999461mm, 209.999999999936mm
+[INFO] 10:34:05 - Embedded footer graphic: DRFA
+[INFO] 10:34:05 - COMPLETED: Inject Footer Graphic in 1023ms (Items Injected: 5)
+[INFO] 10:34:05 - STARTED: Inject Back Cover Element
+[INFO] 10:34:06 - Found texture asset for back cover: texture-landscape.eps
+[INFO] 10:34:06 - Placing back cover element on page C bounds: 0, 0, 296.999999999461, 209.999999999936. Total Height: 25mm
+[INFO] 10:34:06 - Applied object style 'Frames - Radius Large/Medium - Rounded Top Left'
+[INFO] 10:34:06 - Applied 'Blue - Gradient' to back cover fill.
+[INFO] 10:34:06 - Applying back cover geometricBounds: 271.999999999461mm, 12mm, 299.999999999461mm, 212.999999999936mm
+[INFO] 10:34:06 - Placed and aligned texture in Back Cover Background
+[INFO] 10:34:06 - Embedded back cover texture graphic.
+[INFO] 10:34:06 - Applied 'Bold Reverse' character style to back cover text.
+[INFO] 10:34:06 - COMPLETED: Inject Back Cover Element in 353ms
+[INFO] 10:34:06 - STARTED: Inject Content Master Footers
+[INFO] 10:34:06 - COMPLETED: Inject Content Master Footers in 197ms
+[INFO] 10:34:06 - Final Pass: Applying A-Cover to first page.
+[WARN] 10:34:06 - === USER REQUESTED PERFORMANCE REPORT ===
+========================================
+
+
+========================================
+=== BRAND SYSTEM EXECUTION LOG ===
+Status: SUCCESS
+Timestamp: Tue Jul 14 2026 10:34:27 GMT+1000
+InDesign Version: 21.3.0.60
+OS: Windows 10/64 10.0  
+
+=== EXECUTION TRACE ===
+[INFO] 10:34:21 - STARTED: Analyze Document Metrics
+[INFO] 10:34:21 - COMPLETED: Analyze Document Metrics in 0ms (Matched: A3)
+[INFO] 10:34:23 - STARTED: Total Execution
+[INFO] 10:34:23 - STARTED: Reset Document
+[INFO] 10:34:24 - COMPLETED: Reset Document in 13ms
+[INFO] 10:34:24 - STARTED: Build Color Engine
+[INFO] 10:34:24 - COMPLETED: Build Color Engine in 27ms (Swatches: 14, Gradients: 5)
+[INFO] 10:34:24 - STARTED: Load Format Template
+[INFO] 10:34:25 - COMPLETED: Load Format Template in 1320ms (Loaded styles from A3)
+[INFO] 10:34:25 - Applying master layout constraints dynamically.
+[INFO] 10:34:25 - STARTED: Apply Brand Layout
+[INFO] 10:34:25 - Target Layout Metrics - Margin: 17mm, Gutter: 17mm
+[INFO] 10:34:25 - Applying Master Margins [a-cover] - T: 8.5mm, B: 8.5mm, L/R: 17mm
+[INFO] 10:34:25 - COMPLETED: Apply Brand Layout in 14ms
+[INFO] 10:34:25 - STARTED: Inject Header Graphic
+[INFO] 10:34:25 - Found texture asset for header: texture-landscape.eps
+[INFO] 10:34:25 - Forcing inclusion of 'Brand bar - Wordmark Background' because header asset was found.
+[INFO] 10:34:25 - Placing Brand bar - Small on page A bounds: 0, 0, 419.999999999167, 296.999999999461. Scaled Height: 12mm
+[INFO] 10:34:25 - Applying header geometricBounds: -3mm, -3mm, 12mm, 279.999999999461mm
+[INFO] 10:34:25 - Placed and aligned texture in Brand bar - Small
+[INFO] 10:34:25 - Embedded texture graphic in Brand bar - Small
+[INFO] 10:34:25 - Placing Brand bar - Large on page A bounds: 0, 0, 419.999999999167, 296.999999999461. Scaled Height: 352.999999999167mm
+[INFO] 10:34:25 - Applying header geometricBounds: -3mm, -3mm, 352.999999999167mm, 279.999999999461mm
+[INFO] 10:34:25 - Placed and aligned texture in Brand bar - Large
+[INFO] 10:34:25 - Embedded texture graphic in Brand bar - Large
+[INFO] 10:34:25 - Placing Brand bar - Full on page A bounds: 0, 0, 419.999999999167, 296.999999999461. Scaled Height: 352.999999999167mm
+[INFO] 10:34:25 - Applying header geometricBounds: -3mm, -3mm, 352.999999999167mm, 279.999999999461mm
+[INFO] 10:34:26 - Placed and aligned texture in Brand bar - Full
+[INFO] 10:34:26 - Embedded texture graphic in Brand bar - Full
+[INFO] 10:34:26 - Placing Brand bar - Wordmark Background on page A bounds: 0, 0, 419.999999999167, 296.999999999461. Scaled Height: 25.5mm
+[INFO] 10:34:26 - Applying header geometricBounds: -3mm, -3mm, 25.5mm, 279.999999999461mm
+[INFO] 10:34:26 - Placed and aligned texture in Brand bar - Wordmark Background
+[INFO] 10:34:26 - Embedded texture graphic in Brand bar - Wordmark Background
+[INFO] 10:34:26 - Found requested header image via hybrid match: header-Wordmark-A3.eps
+[INFO] 10:34:26 - Applying dynamic header image geometricBounds: 8.5mm, 227.927224497786mm, 20.4999835120307mm, 271.999999999461mm
+[INFO] 10:34:26 - Embedded header graphic.
+[INFO] 10:34:26 - Updated Brand bar - Wordmark Background dynamic height to: 28.4999835120307mm
+[INFO] 10:34:26 - COMPLETED: Inject Header Graphic in 1050ms
+[INFO] 10:34:26 - STARTED: Inject Footer Graphic
+[INFO] 10:34:26 - Footer directory set to: C:\Work\EPS/
+[INFO] 10:34:26 - Found requested asset via hybrid match: footer-A3-portrait-with-margin-Q.eps
+[INFO] 10:34:26 - Found requested asset via hybrid match: footer-A3-portrait-with-margin-Q-QR.eps
+[INFO] 10:34:26 - Found requested asset via hybrid match: footer-A3-portrait-with-margin-BA.eps
+[INFO] 10:34:26 - Found requested asset via hybrid match: footer-A3-portrait-with-margin-BA-QR-Wordmark.eps
+[INFO] 10:34:26 - Found requested asset via hybrid match: footer-A3-portrait-with-margin-DRFA-Wordmark.eps
+[INFO] 10:34:26 - Placing footer on page A bounds: 0, 0, 419.999999999167, 296.999999999461
+[INFO] 10:34:26 - Applying dynamic footer geometricBounds for Q: 391.500001032312mm, 0mm, 419.999999999167mm, 296.999999999461mm
+[INFO] 10:34:26 - Embedded footer graphic: Q
+[INFO] 10:34:26 - Applying dynamic footer geometricBounds for Q-QR: 391.500001032312mm, 0mm, 419.999999999167mm, 296.999999999461mm
+[INFO] 10:34:26 - Embedded footer graphic: Q-QR
+[INFO] 10:34:27 - Applying dynamic footer geometricBounds for BA: 391.500001032312mm, 0mm, 419.999999999167mm, 296.999999999461mm
+[INFO] 10:34:27 - Embedded footer graphic: BA
+[INFO] 10:34:27 - Applying dynamic footer geometricBounds for BA-QR: 391.500001032312mm, 0mm, 419.999999999167mm, 296.999999999461mm
+[INFO] 10:34:27 - Embedded footer graphic: BA-QR
+[INFO] 10:34:27 - Applying dynamic footer geometricBounds for DRFA: 391.500001032312mm, 0mm, 419.999999999167mm, 296.999999999461mm
+[INFO] 10:34:27 - Embedded footer graphic: DRFA
+[INFO] 10:34:27 - Dynamically adjusted Brand bar - Full to avoid overlapping tallest footer.
+[INFO] 10:34:27 - COMPLETED: Inject Footer Graphic in 994ms (Items Injected: 5)
+[INFO] 10:34:27 - STARTED: Inject Back Cover Element
+[INFO] 10:34:27 - Back master missing (likely large format). Skipping back cover injection.
+[INFO] 10:34:27 - STARTED: Inject Content Master Footers
+[INFO] 10:34:27 - Content master missing (likely large format). Skipping content footers.
+[INFO] 10:34:27 - COMPLETED: Inject Content Master Footers in 3ms
+[INFO] 10:34:27 - Final Pass: Applying A-Cover to first page.
+[WARN] 10:34:27 - === USER REQUESTED PERFORMANCE REPORT ===
+========================================
