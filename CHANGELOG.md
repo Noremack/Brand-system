@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.2.0] - 2026-10-08
+
+### Modular Pipeline Refactoring & Module Contracts (Phase 3)
+- **Numbered Modular Architecture (`modules/`):** Refactored the Brand System engine into 10 single-responsibility numbered modules:
+  - `01-config.jsxinc`: Central configuration constants, matrices, and fallback tokens.
+  - `02-utilities.jsxinc`: Dimension math scaling (`scaleMm`), typography calculator (`calcType`), object merger, Logger, and ES3 polyfills.
+  - `03-token-loader.jsxinc`: Multi-tier token resolution (`loadBrandTokens`, `findBrandTokensFile`) with deep directory hierarchy search.
+  - `04-cache-manager.jsxinc`: High-performance in-memory style, swatch, stroke, and list cache to eliminate repetitive DOM querying.
+  - `05-style-builder.jsxinc`: Declarative QGDS component styles with native `styleExportTagMaps` (`exportType: "EPUB"`, `exportTag`, `exportClass`).
+  - `06-layout-engine.jsxinc`: Page geometry, margin calculations, layer stratification, and master spread management.
+  - `07-asset-injector.jsxinc`: Vector header/footer placement, SSD asset resolution, style specimens, and texture embedding.
+  - `08-cleanup-protocol.jsxinc`: Document sanitization, zombie style purge, and brand reset routines.
+  - `09-ui-utils.jsxinc`: ScriptUI dashboard builder, safe preference persistence (`savePreferences`), and progress dialogs.
+  - `10-brand-engine.jsxinc`: Master orchestrator coordinating analysis, template generation, and document processing.
+- **Standardized Module Contracts:** Every module begins with a standardized contract header defining `Purpose`, `Public entry points`, `Required dependencies`, and `Side effects`.
+- **Atomic Transaction Safeguards (`processSafe`):** Wrapped document processing in native `app.doScript` with `UndoModes.ENTIRE_SCRIPT` to guarantee complete transaction rollback upon unhandled errors.
+- **Full Backward-Compatibility Facades:** Retained `.system/Engine.jsx` and all `.system/lib/*.jsx` files as lightweight routing facades to preserve compatibility with legacy callers and external tools.
+- **Top-Level Launcher Direct Module Inlining:** Updated `Apply Brand System.jsx`, `Update Brand Templates.jsx`, `Batch Generate Base Templates.jsx`, `Export Custom Document.jsx`, and `Uninstall Brand System.jsx` to consume `modules/` directly.
+- **Test & Linter Validation:** Extended `tests/test-brand-system.js` to validate all 10 module files and contracts; achieved 100% pass across all 143 test cases and 100% ExtendScript ES3 syntax compliance.
+- **Scripts Panel Auto-Sync:** Integrated with `tools/assemble.js` to automatically keep the live Adobe InDesign Scripts Panel in sync.
+
 ## [2.1.0] - 2026-10-08
 
 ### QGDS Component Alignment & HTML Export Architecture (Phase 1 & Phase 2)

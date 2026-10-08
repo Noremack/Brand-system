@@ -1,6 +1,6 @@
 #target "indesign"
-#include ".system/lib/Logger.jsx"
-#include ".system/lib/CleanupProtocol.jsx"
+#include "modules/02-utilities.jsxinc"
+#include "modules/08-cleanup-protocol.jsxinc"
 
 (function() {
     if (app.documents.length === 0) {

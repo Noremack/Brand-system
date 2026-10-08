@@ -1,6 +1,6 @@
 #target "indesign"
-#include ".system/Engine.jsx"
-#include ".system/lib/UIUtils.jsx"
+#include "modules/10-brand-engine.jsxinc"
+#include "modules/09-ui-utils.jsxinc"
 
 (function() {
     if (app.documents.length === 0) {

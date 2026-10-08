@@ -1,8 +1,8 @@
 #target "indesign"
 
 var BATCH_PROCESS_ACTIVE = true; // Prevents the UI from launching when the engine is loaded
-#include ".system/Engine.jsx"
-#include ".system/lib/UIUtils.jsx"
+#include "modules/10-brand-engine.jsxinc"
+#include "modules/09-ui-utils.jsxinc"
 
 (function() {
     var isSilent = app.scriptArgs.getValue("BrandSystem_Silent") === "true";

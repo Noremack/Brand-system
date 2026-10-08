@@ -1,0 +1,103 @@
+/* --- MODULE CONTRACT: 08-cleanup-protocol.jsxinc ---
+Purpose: Safe document sanitization, wiping existing brand styles and master pages back to InDesign defaults.
+Public entry points: CleanupProtocol.
+Required dependencies: 02-utilities.jsxinc.
+Side effects: Deletes custom styles, swatches, and master spreads from active document.
+-------------------------------------------------- */
+
+var CleanupProtocol = {
+    resetDocument: function(doc) {
+        // Clear all items from the brand system's master pages
+        var docLayers = doc.layers.everyItem().getElements();
+        for (var l = 0; l < docLayers.length; l++) {
+            if (docLayers[l].isValid && docLayers[l].locked) {
+                try { docLayers[l].locked = false; } catch (e) { Logger.warn("Failed to unlock layer '" + docLayers[l].name + "': " + e.message); }
+            }
+        }
+
+        var masters = doc.masterSpreads.everyItem().getElements();
+        for (var m = 0; m < masters.length; m++) {
+            var master = masters[m];
+            if (!master.isValid) continue;
+
+            var isTargetMaster = (master.namePrefix === "A" && master.baseName === "Cover") ||
+                                 (master.namePrefix === "B" && master.baseName === "Content") ||
+                                 (master.namePrefix === "C" && master.baseName === "Back");
+
+            if (isTargetMaster) {
+                var items = master.allPageItems;
+                if (items.length > 0) {
+                    Logger.info("Reset: Clearing " + items.length + " items from master page '" + master.name + "'");
+                    for (var j = items.length - 1; j >= 0; j--) {
+                        var item = items[j];
+                        if (item.isValid) {
+                            try {
+                                if (item.itemLayer && item.itemLayer.isValid && item.itemLayer.locked) item.itemLayer.locked = false;
+                                if (item.locked) item.locked = false;
+                                item.remove();
+                            } catch (e) { Logger.warn("Failed to delete item from master " + master.name + ": " + e.message); }
+                        }
+                    }
+                }
+            }
+        }
+
+        var frames = doc.textFrames.everyItem().getElements();
+        for (var i = 0; i < frames.length; i++) { 
+            if (frames[i].isValid && frames[i].texts.length > 0) {
+                try { frames[i].texts[0].appliedParagraphStyle = doc.paragraphStyles.itemByName("[Basic Paragraph]"); frames[i].texts[0].clearOverrides(OverrideType.ALL); frames[i].texts[0].appliedCharacterStyle = doc.characterStyles.itemByName("[None]"); } catch (e) { Logger.warn("Failed to reset frame text: " + e.message); } 
+            }
+        }
+        
+        var pStyles = doc.paragraphStyles.everyItem().getElements(); 
+        for (var i = pStyles.length - 1; i >= 0; i--) { 
+            if (pStyles[i].isValid && pStyles[i].name !== "[No Paragraph Style]" && pStyles[i].name !== "[Basic Paragraph]") { 
+                try { pStyles[i].remove(); } catch (e) { Logger.warn("Failed to remove pStyle " + pStyles[i].name + ": " + e.message); } 
+            } 
+        }
+        var cStyles = doc.characterStyles.everyItem().getElements(); 
+        for (var j = cStyles.length - 1; j >= 0; j--) { 
+            if (cStyles[j].isValid && cStyles[j].name !== "[None]") { 
+                try { cStyles[j].remove(); } catch (e) { Logger.warn("Failed to remove cStyle " + cStyles[j].name + ": " + e.message); } 
+            } 
+        }
+        var oStyles = doc.objectStyles.everyItem().getElements(); 
+        for (var o = oStyles.length - 1; o >= 0; o--) { 
+            if (oStyles[o].isValid && oStyles[o].name !== "[None]" && oStyles[o].name !== "Artifact frame" && oStyles[o].name !== "[Basic Grid]" && oStyles[o].name !== "[Basic Text Frame]") { 
+                try { oStyles[o].remove(); } catch (e) { Logger.warn("Failed to remove oStyle " + oStyles[o].name + ": " + e.message); } 
+            } 
+        }
+        var tStyles = doc.tableStyles.everyItem().getElements(); 
+        for (var t = tStyles.length - 1; t >= 0; t--) { 
+            if (tStyles[t].isValid && tStyles[t].name !== "[Basic Table]" && tStyles[t].name !== "[No Table Style]") { 
+                try { tStyles[t].remove(); } catch (e) { Logger.warn("Failed to remove tStyle " + tStyles[t].name + ": " + e.message); } 
+            } 
+        }
+        var cellStyles = doc.cellStyles.everyItem().getElements(); 
+        for (var cs = cellStyles.length - 1; cs >= 0; cs--) { 
+            if (cellStyles[cs].isValid && cellStyles[cs].name !== "[None]") { 
+                try { cellStyles[cs].remove(); } catch (e) { Logger.warn("Failed to remove cellStyle " + cellStyles[cs].name + ": " + e.message); } 
+            } 
+        }
+        
+        var oGroups = doc.objectStyleGroups.everyItem().getElements(); 
+        for (var og = oGroups.length - 1; og >= 0; og--) { try { if (oGroups[og].isValid) oGroups[og].remove(); } catch(e) { Logger.warn("Failed to remove oGroup: " + e.message); } }
+        var pGroups = doc.paragraphStyleGroups.everyItem().getElements(); 
+        for (var pg = pGroups.length - 1; pg >= 0; pg--) { try { if (pGroups[pg].isValid) pGroups[pg].remove(); } catch(e) { Logger.warn("Failed to remove pGroup: " + e.message); } }
+        var cGroups = doc.characterStyleGroups.everyItem().getElements(); 
+        for (var cg = cGroups.length - 1; cg >= 0; cg--) { try { if (cGroups[cg].isValid) cGroups[cg].remove(); } catch(e) { Logger.warn("Failed to remove cGroup: " + e.message); } }
+        var tGroups = doc.tableStyleGroups.everyItem().getElements(); 
+        for (var tg = tGroups.length - 1; tg >= 0; tg--) { try { if (tGroups[tg].isValid) tGroups[tg].remove(); } catch(e) { Logger.warn("Failed to remove tGroup: " + e.message); } }
+        var cellGroups = doc.cellStyleGroups.everyItem().getElements(); 
+        for (var csg = cellGroups.length - 1; csg >= 0; csg--) { try { if (cellGroups[csg].isValid) cellGroups[csg].remove(); } catch(e) { Logger.warn("Failed to remove cellGroup: " + e.message); } }
+
+        var keepSwatches = ["[None]", "[Registration]", "[Paper]", "[Black]", "None", "Registration", "Paper", "Black"];
+        var swatches = doc.swatches.everyItem().getElements(); for (var k = swatches.length - 1; k >= 0; k--) {
+            if (!swatches[k].isValid) continue;
+            var removeSwatch = true;
+            for (var m = 0; m < keepSwatches.length; m++) { if (swatches[k].name === keepSwatches[m]) { removeSwatch = false; break; } }
+            if (swatches[k].name.indexOf("BA") === 0) removeSwatch = false;
+            if (removeSwatch) { try { swatches[k].remove(); } catch (e) { Logger.warn("Failed to remove swatch " + swatches[k].name + ": " + e.message); } }
+        }
+    }
+};

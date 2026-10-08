@@ -1,0 +1,753 @@
+/* --- MODULE CONTRACT: 10-brand-engine.jsxinc ---
+Purpose: Master orchestrator coordinating color building, typography styling, object generation, and template compilation within atomic transactions.
+Public entry points: BrandSystem (analyze, process, processSafe, generateTemplate, createStyles, buildTypographyEngine, buildColorEngine, buildObjectEngineDynamic, config, Logger).
+Required dependencies: 01-config.jsxinc through 09-ui-utils.jsxinc.
+Side effects: Modifies active InDesign document within app.doScript atomic transactions.
+-------------------------------------------------- */
+
+#include "01-config.jsxinc"
+#include "02-utilities.jsxinc"
+#include "03-token-loader.jsxinc"
+#include "04-cache-manager.jsxinc"
+#include "05-style-builder.jsxinc"
+#include "06-layout-engine.jsxinc"
+#include "07-asset-injector.jsxinc"
+#include "08-cleanup-protocol.jsxinc"
+#include "09-ui-utils.jsxinc"
+
+var BrandSystem = (function() {
+
+    // =============================================================================
+// 2. DOCUMENT ANALYSIS & ORCHESTRATION ENGINE
+    // =============================================================================
+    
+
+    /**
+     * Injects configured brand swatches and gradients into the document.
+     * @param {Document} doc - The active InDesign document.
+     * @param {Object} params - User parameters (e.g., colorMode "RGB" or "CMYK").
+     * @param {Array} themes - Array of theme names selected by the user.
+     */
+    function buildColorEngine(doc, params, themes) {
+        Logger.startTimer("Build Color Engine");
+        var isCMYK = (params.colorMode === "CMYK");
+        var cLen = config.colors.length;
+        var tLen = themes.length;
+        var swatchesProcessed = 0;
+        
+        for (var c = 0; c < cLen; c++) {
+            var col = config.colors[c]; var keep = (col.name.indexOf("Neutral") === 0);
+            if (!keep) { for (var t = 0; t < tLen; t++) { if (col.name.indexOf(themes[t]) > -1) { keep = true; break; } } }
+            if (keep) {
+                var finalVal = (isCMYK && col.cmykValue) ? col.cmykValue : col.value;
+                var finalSpace = (isCMYK && col.cmykValue) ? ColorSpace.CMYK : ColorSpace.RGB;
+                getOrCreateSwatch(doc, col.name, finalVal, "Process", finalSpace);
+                swatchesProcessed++;
+            }
+        }
+
+        var gLen = config.gradients.length;
+        var gradsProcessed = 0;
+        for (var g = 0; g < gLen; g++) {
+            var grad = config.gradients[g];
+            var keepGrad = (grad.name.indexOf("Neutral") === 0);
+            if (!keepGrad) {
+                for (var gt = 0; gt < tLen; gt++) { if (grad.name.indexOf(themes[gt]) > -1) { keepGrad = true; break; } }
+            }
+            if (keepGrad) {
+                getOrCreateGradient(doc, grad.name, grad.type, grad.stops);
+                gradsProcessed++;
+            }
+        }
+        Logger.endTimer("Build Color Engine", "Swatches: " + swatchesProcessed + ", Gradients: " + gradsProcessed);
+    }
+
+    /**
+     * Dynamically generates the paragraph and character styles for the typography system.
+     * Styles are passed to the createStyles function to be ingested into the InDesign DOM.
+     * @param {Document} doc - The active InDesign document.
+     * @param {Object} typographySystem - Baseline font sizing and scaling metrics.
+     * @param {Object} standardTheme - Standard primary colors.
+     * @param {Object} reverseTheme - Reverse/Dark mode colors.
+     * @param {Object} layoutMetrics - Physical layout parameters (margins, etc.).
+     */
+    function buildTypographyEngine(doc, typographySystem, standardTheme, reverseTheme, layoutMetrics) {
+        Logger.startTimer("Build Typography Engine");
+        
+        var charDefs = StyleBuilder.characterStyleDefinitions(typographySystem, standardTheme, "");
+        var charRevDefs = StyleBuilder.characterStyleDefinitions(typographySystem, reverseTheme, "Reverse");
+        createStyles(doc, "character", charDefs);
+        createStyles(doc, "character", charRevDefs);
+
+        var paraDefs = StyleBuilder.paragraphStyleDefinitions(typographySystem, standardTheme, "");
+        var paraRevDefs = StyleBuilder.paragraphStyleDefinitions(typographySystem, reverseTheme, "Reverse");
+        createStyles(doc, "paragraph", paraDefs, layoutMetrics);
+        createStyles(doc, "paragraph", paraRevDefs, layoutMetrics);
+        
+        var tCount = charDefs.length + charRevDefs.length + paraDefs.length + paraRevDefs.length;
+        Logger.endTimer("Build Typography Engine", "Styles Generated: " + tCount);
+    }
+
+    /**
+     * Dynamically generates object, table, and cell styles. 
+     * @param {Document} doc - The active InDesign document.
+     * @param {Object} typographySystem - Font sizing for proportional object scaling (e.g., corner radius).
+     * @param {Object} standardTheme - Theme colors for frame fills and strokes.
+     * @param {String} [activeThemeName] - The selected primary theme to generate fill/stroke styles for.
+     */
+    function buildObjectEngineDynamic(doc, typographySystem, theme, activeThemeName) {
+        Logger.startTimer("Build Object Engine (Dynamic)");
+        
+        var cellDefs = StyleBuilder.cellStyleDefinitions(theme, typographySystem, "");
+        var tableDefs = StyleBuilder.tableStyleDefinitions(theme, typographySystem, "");
+        var objDefs = StyleBuilder.objectStyleDefinitions(theme, typographySystem);
+        
+        var nativeColors = ["Black", "Paper"];
+        for (var nc = 0; nc < nativeColors.length; nc++) {
+            var nCol = nativeColors[nc];
+            var nSwatch = doc.swatches.item(nCol);
+            if (!nSwatch.isValid) nSwatch = doc.colors.item(nCol);
+            if (nSwatch.isValid) {
+                objDefs.push({
+                    name: "Fill - " + nCol,
+                    group: "Theme Fills",
+                    properties: { fillColor: nCol, strokeColor: "None", strokeWeight: 0 }
+                });
+                objDefs.push({
+                    name: "Stroke - " + nCol,
+                    group: "Theme Strokes",
+                    properties: { fillColor: "None", strokeColor: nCol, strokeWeight: typographySystem.baseStroke || "1pt" }
+                });
+            }
+        }
+        
+        var cLen = config.colors.length;
+        for (var c = 0; c < cLen; c++) {
+            var colName = config.colors[c].name;
+            if (activeThemeName) {
+                var isNeutral = (colName.indexOf("Neutral") === 0);
+                var isPrimary = (colName.indexOf(activeThemeName) === 0);
+                if (!isNeutral && !isPrimary) continue;
+            }
+            var swatch = doc.swatches.item(colName);
+            if (!swatch.isValid) swatch = doc.colors.item(colName);
+            
+            if (swatch.isValid) {
+                var nameParts = colName.split(" - ");
+                var semanticRole = (nameParts[0] === "Neutral") ? "Neutral" : "Primary";
+                var shade = nameParts.length > 1 ? nameParts[1] : nameParts[0];
+                var genericName = semanticRole + " " + shade;
+                
+                objDefs.push({
+                    name: "Fill - " + genericName,
+                    group: "Theme Fills",
+                    properties: { fillColor: colName, strokeColor: "None", strokeWeight: 0 }
+                });
+                objDefs.push({
+                    name: "Stroke - " + genericName,
+                    group: "Theme Strokes",
+                    properties: { fillColor: "None", strokeColor: colName, strokeWeight: typographySystem.baseStroke || "1pt" }
+                });
+            }
+        }
+        
+        var gLen = config.gradients.length;
+        for (var g = 0; g < gLen; g++) {
+            var gradName = config.gradients[g].name;
+            if (activeThemeName) {
+                var isNeutral = (gradName.indexOf("Neutral") === 0);
+                var isPrimary = (gradName.indexOf(activeThemeName) === 0);
+                if (!isNeutral && !isPrimary) continue;
+            }
+            
+            var gradient = doc.gradients.itemByName(gradName);
+            if (!gradient.isValid) gradient = doc.swatches.itemByName(gradName);
+            
+            if (gradient.isValid) {
+                var nameParts = gradName.split(" - ");
+                var semanticRole = (nameParts[0] === "Neutral") ? "Neutral" : "Primary";
+                var shade = nameParts.length > 1 ? nameParts[1] : nameParts[0];
+                var genericName = semanticRole + " " + shade;
+                
+                objDefs.push({
+                    name: "Fill - " + genericName,
+                    group: "Theme Fills",
+                    properties: { fillColor: gradName, strokeColor: "None", strokeWeight: 0 }
+                });
+                objDefs.push({
+                    name: "Stroke - " + genericName,
+                    group: "Theme Strokes",
+                    properties: { fillColor: "None", strokeColor: gradName, strokeWeight: typographySystem.baseStroke || "1pt" }
+                });
+            }
+        }
+        
+        createStyles(doc, "cell", cellDefs);
+        createStyles(doc, "table", tableDefs);
+        createStyles(doc, "object", objDefs);
+        
+        var oCount = cellDefs.length + tableDefs.length + objDefs.length;
+        Logger.endTimer("Build Object Engine (Dynamic)", "Styles Generated: " + oCount);
+    }
+
+    /**
+     * Orchestrates the creation of a standalone format-specific template (.indt).
+     * @param {Document} doc - A blank InDesign document to build into a template.
+     * @param {Object} format - Layout metrics object (e.g., A4).
+     * @param {Object} prefs - User preferences dictating default themes.
+     */
+    function generateTemplate(doc, format, prefs) {
+        CacheManager.reset(); // Flush memory from any previously built documents
+        $.gc(); $.gc();
+        
+        var oldUnit = app.scriptPreferences.measurementUnit;
+        app.scriptPreferences.measurementUnit = MeasurementUnits.MILLIMETERS;
+
+        try {
+            prefs = prefs || {};
+            var isCMYK = (prefs.colorMode === "CMYK");
+            try {
+                if (isCMYK) { 
+                    doc.documentPreferences.intent = DocumentIntentOptions.PRINT_INTENT; 
+                    doc.transparencyPreferences.blendingSpace = BlendingSpace.CMYK; 
+                } else { 
+                    doc.documentPreferences.intent = DocumentIntentOptions.WEB_INTENT; 
+                    doc.transparencyPreferences.blendingSpace = BlendingSpace.RGB; 
+                }
+            } catch (e) { 
+                Logger.warn("Failed to set template color intent: " + e.message); 
+            }
+            
+            var metrics = format || analyzeDocumentMetrics(doc);
+
+            if (metrics.orientation && metrics.orientation.length > 0) {
+                doc.documentPreferences.pageOrientation = (metrics.orientation[0].toLowerCase() === "landscape") 
+                    ? PageOrientation.LANDSCAPE 
+                    : PageOrientation.PORTRAIT;
+            }
+            var typographySystem = {
+                primaryFontName: prefs.selectedFont || config.dialogDefaults.font, 
+                baseFontSize: prefs.baseFontSize || metrics.baseFont || 12,
+                baseLeadingRatio: prefs.baseLeadingRatio || 1.25, 
+                scaleRatio: prefs.scaleRatio || 1.25,
+                baseLeadingInPt: Math.round((prefs.baseFontSize || metrics.baseFont || 12) * (prefs.baseLeadingRatio || 1.25)),
+                baseStroke: "1pt", baselineDesignSize: metrics.baseFont || 12
+            };
+            var standardTheme = StyleBuilder.getThemeColors(prefs.primaryStyleTheme || "Blue", false);
+            var reverseTheme = StyleBuilder.getThemeColors(prefs.primaryStyleTheme || "Blue", true);
+            var activePrimaryTheme = prefs.isReverseMode ? reverseTheme : standardTheme;
+            var activeSecondaryTheme = prefs.isReverseMode ? standardTheme : reverseTheme;
+            
+            buildColorEngine(doc, { colorMode: prefs.colorMode || "RGB" }, config.availableThemes);
+            buildTypographyEngine(doc, typographySystem, activePrimaryTheme, activeSecondaryTheme, metrics);
+            buildObjectEngineDynamic(doc, typographySystem, activePrimaryTheme, prefs.primaryStyleTheme || "Blue");
+        } finally {
+            app.scriptPreferences.measurementUnit = oldUnit;
+        }
+    }
+
+    /**
+     * The Main Execution Pipeline. Cleans, structures, and applies the brand system to the active document.
+     * @param {Document} doc - The active InDesign document.
+     * @param {Object} params - The serialized user settings from the UI dialog.
+     */
+    function processDocument(doc, params) {
+        if (!doc || !doc.isValid) throw new Error("Invalid document reference passed.");
+        Logger.showProgress("Applying Brand System...");
+        Logger.startTimer("Total Execution");
+        app.scriptPreferences.enableRedraw = false;
+        var oldUnit = app.scriptPreferences.measurementUnit;
+        app.scriptPreferences.measurementUnit = MeasurementUnits.MILLIMETERS;
+        var isCMYK = (params.colorMode === "CMYK");
+        try {
+            CacheManager.reset(); // Clear memory on new run
+            $.gc(); $.gc(); // Double-call forces a deep sweep of the garbage collector
+            
+            if (params.mode === "reset" || params.doReset) { 
+                Logger.startTimer("Reset Document");
+                CleanupProtocol.resetDocument(doc); 
+                Logger.endTimer("Reset Document");
+                if (params.mode === "reset") return; 
+            }
+
+            if (params.layoutMetrics && params.layoutMetrics.orientation && params.layoutMetrics.orientation.length > 0) {
+                doc.documentPreferences.pageOrientation = (params.layoutMetrics.orientation[0].toLowerCase() === "landscape") 
+                    ? PageOrientation.LANDSCAPE 
+                    : PageOrientation.PORTRAIT;
+            }
+
+            doc.viewPreferences.horizontalMeasurementUnits = MeasurementUnits.MILLIMETERS;
+            doc.viewPreferences.verticalMeasurementUnits = MeasurementUnits.MILLIMETERS;
+            
+            if (params.layoutMetrics && params.layoutMetrics.bleed !== undefined) {
+                doc.documentPreferences.documentBleedTopOffset = params.layoutMetrics.bleed + "mm";
+                doc.documentPreferences.documentBleedBottomOffset = params.layoutMetrics.bleed + "mm";
+                doc.documentPreferences.documentBleedInsideOrLeftOffset = params.layoutMetrics.bleed + "mm";
+                doc.documentPreferences.documentBleedOutsideOrRightOffset = params.layoutMetrics.bleed + "mm";
+            }
+
+            try {
+                if (isCMYK) { 
+                    doc.documentPreferences.intent = DocumentIntentOptions.PRINT_INTENT; 
+                    doc.transparencyPreferences.blendingSpace = BlendingSpace.CMYK; 
+                } else { 
+                    doc.documentPreferences.intent = DocumentIntentOptions.WEB_INTENT; 
+                    doc.transparencyPreferences.blendingSpace = BlendingSpace.RGB; 
+                }
+            } catch (e) {
+                Logger.warn("Failed to apply color intent to document: " + e.message);
+            }
+
+            var themes = params.selectedThemes || [];
+            if (params.primaryStyleTheme && params.primaryStyleTheme !== "None") {
+                var hasPrimary = false;
+                for (var z = 0; z < themes.length; z++) { if (themes[z] === params.primaryStyleTheme) { hasPrimary = true; break; } }
+                if (!hasPrimary) themes.push(params.primaryStyleTheme);
+            }
+
+            if (params.buildColors) {
+                buildColorEngine(doc, params, themes);
+            }
+
+            var modeStr = params.isReverseMode ? "Reverse" : "Standard";
+            var cMode = params.colorMode || "RGB";
+            var pTheme = params.primaryStyleTheme || "Blue";
+            
+            var namePart = params.layoutMetrics.name;
+            var isDigital = (params.layoutMetrics.type === 'digital' || params.layoutMetrics.name.toLowerCase().indexOf('digital') === 0);
+            if (isDigital) {
+                var widthPx = Math.round(params.layoutMetrics.longEdge / config.PT_TO_MM);
+                var heightPx = Math.round(params.layoutMetrics.shortEdge / config.PT_TO_MM);
+                namePart = params.layoutMetrics.name + "_" + widthPx + "x" + heightPx + "px";
+            }
+
+            var templateName = "BrandSystem_" + namePart + "_" + cMode + "_" + pTheme + "_" + modeStr + ".indt";
+            var scriptParent = (typeof $ !== "undefined" && $.fileName) ? new File($.fileName).parent : null;
+            var rootDir = "";
+            if (scriptParent) {
+                var pName = scriptParent.name.toLowerCase();
+                rootDir = (pName === "modules" || pName === ".system") ? scriptParent.parent.fsName : scriptParent.fsName;
+            }
+            var templateFile = new File(rootDir + "/Resources/" + templateName);
+            if (!templateFile.exists) templateFile = new File(rootDir + "/.system/Resources/" + templateName);
+            
+            var customTypo = false;
+            if (params.baseFontSize && params.baseFontSize !== params.layoutMetrics.baseFont) customTypo = true;
+            if (params.selectedFont && params.selectedFont !== config.dialogDefaults.font) customTypo = true;
+            if (params.baseLeadingRatio && params.baseLeadingRatio !== config.dialogDefaults.leadingRatio) customTypo = true;
+            if (params.scaleRatio && params.scaleRatio !== config.dialogDefaults.scaleRatio) customTypo = true;
+
+            if (!templateFile.exists && !customTypo) {
+                Logger.info("Format template not found. Triggering Template Builder script...");
+                
+                var myParent = new File($.fileName).parent;
+                var rootDir = (myParent.name.toLowerCase() === ".system") ? myParent.parent.fsName : myParent.fsName;
+                var builderScript = findFuzzyAsset(rootDir, ["Update", "Brand", "Templates"], null, ".jsx");
+                
+                if (builderScript && builderScript.exists) {
+                    try {
+                        app.scriptArgs.setValue("BrandSystem_Silent", "true");
+                        app.doScript(builderScript, ScriptLanguage.JAVASCRIPT);
+                        app.scriptArgs.clear();
+                    } catch(e) {
+                        Logger.warn("Template Builder script failed: " + e.message);
+                    }
+                } else {
+                    Logger.warn("Template builder script not found.");
+                }
+            }
+
+            var stylesLoadedFromTemplate = false;
+            if (templateFile.exists && !customTypo) {
+                Logger.startTimer("Load Format Template");
+                try {
+                    if (params.buildTypography) {
+                        doc.importStyles(ImportFormat.CHARACTER_STYLES_FORMAT, templateFile, GlobalClashResolutionStrategy.LOAD_ALL_WITH_OVERWRITE);
+                        doc.importStyles(ImportFormat.PARAGRAPH_STYLES_FORMAT, templateFile, GlobalClashResolutionStrategy.LOAD_ALL_WITH_OVERWRITE);
+                    }
+                    if (params.buildObjects) {
+                        doc.importStyles(ImportFormat.TABLE_AND_CELL_STYLES_FORMAT, templateFile, GlobalClashResolutionStrategy.LOAD_ALL_WITH_OVERWRITE);
+                        doc.importStyles(ImportFormat.OBJECT_STYLES_FORMAT, templateFile, GlobalClashResolutionStrategy.LOAD_ALL_WITH_OVERWRITE);
+                    }
+                    
+                    Logger.endTimer("Load Format Template", "Loaded styles from " + params.layoutMetrics.name);
+                    stylesLoadedFromTemplate = true;
+                } catch(e) {
+                    Logger.warn("Template import failed: " + e.message);
+                }
+            }
+            
+            if (!stylesLoadedFromTemplate) {
+                Logger.info("Falling back to dynamic style generation...");
+                var finalBaseFontSize = params.baseFontSize || params.layoutMetrics.baseFont || 12; 
+                var typographySystem = {
+                    primaryFontName: params.selectedFont, baseFontSize: finalBaseFontSize,
+                    baseLeadingRatio: params.baseLeadingRatio, scaleRatio: params.scaleRatio,
+                    baseLeadingInPt: Math.round(finalBaseFontSize * params.baseLeadingRatio),
+                    baseStroke: (Math.round((finalBaseFontSize / config.typographyMatrix.universalReferencePt) * 2) / 2) + "pt",
+                    baselineDesignSize: params.layoutMetrics.baseFont 
+                }; 
+
+                var standardTheme = BrandSystem.StyleBuilder.getThemeColors(params.primaryStyleTheme, false);
+                var reverseTheme = StyleBuilder.getThemeColors(params.primaryStyleTheme, true);
+                var activePrimaryTheme = params.isReverseMode ? reverseTheme : standardTheme;
+                var activeSecondaryTheme = params.isReverseMode ? standardTheme : reverseTheme;
+
+                if (params.buildTypography) {
+                    buildTypographyEngine(doc, typographySystem, activePrimaryTheme, activeSecondaryTheme, params.layoutMetrics);
+                    $.gc(); 
+                }
+                if (params.buildObjects) {
+                    buildObjectEngineDynamic(doc, typographySystem, activePrimaryTheme, params.primaryStyleTheme || "Blue");
+                    $.gc(); 
+                }
+            }
+
+            if (params.updateMargins) {
+                Logger.info("Applying master layout constraints dynamically.");
+                applyBrandLayout(doc, params.layoutMetrics);
+            }
+
+            if (params.injectFooters) {
+                
+                injectHeaderGraphic(doc, params.layoutMetrics, params.customFooterDirectory, params.footerFormat, params.primaryStyleTheme);
+                if (params.selectedFooterVariant && params.selectedFooterVariant !== "None") {
+                    var variantsToInject = (params.selectedFooterVariant === "All Footers") 
+                        ? config.assetTokens.footerVariants 
+                        : [params.selectedFooterVariant];
+                    injectFooterGraphic(doc, params.layoutMetrics, variantsToInject, params.customFooterDirectory, params.footerFormat);
+                }
+            injectBackCoverElement(doc, params.layoutMetrics, params.customFooterDirectory, params.primaryStyleTheme, params.isReverseMode);
+                injectContentMasterFooters(doc, params.layoutMetrics);
+            }
+
+            if (params.injectSpecimen) {
+                injectStyleSpecimen(doc, params.layoutMetrics);
+            }
+
+            // Final master page assignment pass to ensure Cover is on Page 1
+            try {
+                Logger.info("Final Pass: Applying A-Cover to first page.");
+                
+                var mastersArr = doc.masterSpreads.everyItem().getElements();
+                var aCoverMaster = null;
+                for (var m = 0; m < mastersArr.length; m++) {
+                    if (mastersArr[m].namePrefix === "A" && mastersArr[m].baseName === "Cover") { aCoverMaster = mastersArr[m]; break; }
+                }
+                
+                if (aCoverMaster && aCoverMaster.isValid && doc.pages.length > 0) {
+                    doc.pages[0].appliedMaster = aCoverMaster;
+                } else {
+                    Logger.warn("Could not apply A-Cover on final pass. Master may not exist or document has no pages.");
+                }
+            } catch(e) {
+                Logger.warn("Failed to apply A-Cover on final pass: " + e.message);
+            }
+
+            // Support multiple parameter name variations from the UI
+            var wantsReport = params.perfLog || params.generatePerformanceReport || params.performanceReport || params.generateReport;
+            if (String(wantsReport) === "false") wantsReport = false;
+            
+            if (wantsReport) {
+                // Force a manual warning token into the array to completely bypass the Logger's silent "perfect run" suppression
+                Logger.warn("=== USER REQUESTED PERFORMANCE REPORT ===");
+                
+                // Update the ContinualLog file
+                var logPath = Logger.dump(null, true);
+                
+                alert("Performance Report Generated!\n\nYour execution telemetry has been successfully appended to the ContinualLog.\n\nLog Location:\n" + (logPath || "BrandSystem_ContinualLog.txt"));
+            }
+
+        } catch (e) { 
+            var crashPath = Logger.dump(e, false);
+            throw new Error(e.message + "\n\nA diagnostic log has been saved to:\n" + crashPath);
+        } finally { 
+            app.scriptPreferences.enableRedraw = true;
+            app.scriptPreferences.measurementUnit = oldUnit;
+            CacheManager.reset(); // Wipe all persistent DOM references
+            $.gc(); $.gc(); // Final flush to prevent memory leaks into the next run
+            Logger.closeProgress();
+        }
+    }
+
+    
+    // STRUCTURAL FIX: createStyles mapped to Lazy-Loader Cache
+    /**
+     * Resolves a nested style group path (e.g., "QGDS / Callout", "Reverse / QGDS / Card")
+     * creating intermediate parent style groups in the hierarchy as needed.
+     * @param {Object} rootGroupCollection - The document's top-level style group collection.
+     * @param {String} groupPath - Slash-delimited path of the style group.
+     * @param {String} childGroupName - Property name for child groups (e.g., "paragraphStyleGroups").
+     * @returns {Object|null} The deepest resolved StyleGroup object.
+     */
+    function resolveTargetGroup(rootGroupCollection, groupPath, childGroupName) {
+        if (!groupPath || !rootGroupCollection) return null;
+        var parts = groupPath.split(/\s*[\/\\]\s*/);
+        var currentColl = rootGroupCollection;
+        var currentGrp = null;
+        for (var p = 0; p < parts.length; p++) {
+            var partName = parts[p];
+            if (!partName) continue;
+            currentGrp = currentColl.itemByName(partName);
+            if (!currentGrp || !currentGrp.isValid) {
+                currentGrp = currentColl.add({ name: partName });
+            }
+            if (p < parts.length - 1) {
+                if (currentGrp[childGroupName]) {
+                    currentColl = currentGrp[childGroupName];
+                } else {
+                    break;
+                }
+            }
+        }
+        return currentGrp;
+    }
+
+    /**
+     * Applies HTML/EPUB export tag mappings and CSS emission settings to paragraph and character styles.
+     * Integrates with InDesign's native StyleExportTagMaps DOM collection.
+     * @param {Object} style - The InDesign ParagraphStyle or CharacterStyle.
+     * @param {Object|Array} exportTagDef - The tag map object or array of objects.
+     * @param {Boolean} [emitCss] - Whether to emit CSS declarations for this style.
+     */
+    function applyExportTagMaps(style, exportTagDef, emitCss) {
+        if (!style || !style.isValid) return;
+        if (emitCss !== undefined) {
+            try { style.emitCss = !!emitCss; } catch (_) {}
+        }
+        if (!exportTagDef || !style.styleExportTagMaps) return;
+
+        var maps = (exportTagDef instanceof Array) ? exportTagDef : [exportTagDef];
+        try {
+            var tagMaps = style.styleExportTagMaps;
+            for (var m = 0; m < maps.length; m++) {
+                var mapItem = maps[m];
+                if (!mapItem || !mapItem.exportTag) continue;
+                var eType = mapItem.exportType || "EPUB";
+                var eTag = mapItem.exportTag;
+                var eClass = mapItem.exportClass || "";
+                var eAttr = mapItem.exportAttributes || "";
+
+                var found = false;
+                var tLen = (typeof tagMaps.length === "number") ? tagMaps.length : 0;
+                for (var t = 0; t < tLen; t++) {
+                    var tm = tagMaps[t] || (typeof tagMaps.item === "function" ? tagMaps.item(t) : null);
+                    if (tm && (tm.exportType === eType || tm.exportType === "HTML")) {
+                        tm.exportTag = eTag;
+                        tm.exportClass = eClass;
+                        if (eAttr !== undefined) tm.exportAttributes = eAttr;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    var mapProps = {
+                        exportType: eType,
+                        exportTag: eTag,
+                        exportClass: eClass,
+                        exportAttributes: eAttr
+                    };
+                    if (typeof tagMaps.add === "function") {
+                        tagMaps.add(mapProps);
+                    } else if (typeof tagMaps.push === "function") {
+                        tagMaps.push(mapProps);
+                    }
+                }
+            }
+        } catch (err) {
+            Logger.warn("Failed to apply export tag map to '" + style.name + "': " + err.message);
+        }
+    }
+
+    /**
+     * Core DOM injector for all styles. Relies on CacheManager to prevent memory leaks 
+     * and massive performance slowdowns caused by repeatedly querying doc.paragraphStyles.
+     * Automatically garbage collects every 50 loops to prevent ExtendScript memory crashes.
+     * 
+     * Mass generator for all InDesign style types using cached lookup validation.
+     * @param {Document} doc - The active InDesign document.
+     * @param {String} styleType - "paragraph", "character", "object", "table", or "cell".
+     * @param {Array} definitions - Array of property objects defined in the config.
+     * @param {Object} layoutMetrics - Active layout constraints (for TOC tab positioning).
+     */
+    function createStyles(doc, styleType, definitions, layoutMetrics) {
+        var baseCollection, groupCollection, childName, childGroupName;
+        
+        if (styleType === "paragraph") { baseCollection = doc.paragraphStyles; groupCollection = doc.paragraphStyleGroups; childName = "paragraphStyles"; childGroupName = "paragraphStyleGroups"; } 
+        else if (styleType === "character") { baseCollection = doc.characterStyles; groupCollection = doc.characterStyleGroups; childName = "characterStyles"; childGroupName = "characterStyleGroups"; } 
+        else if (styleType === "object") { baseCollection = doc.objectStyles; groupCollection = doc.objectStyleGroups; childName = "objectStyles"; childGroupName = "objectStyleGroups"; } 
+        else if (styleType === "table") { baseCollection = doc.tableStyles; groupCollection = doc.tableStyleGroups; childName = "tableStyles"; childGroupName = "tableStyleGroups"; } 
+        else if (styleType === "cell") { baseCollection = doc.cellStyles; groupCollection = doc.cellStyleGroups; childName = "cellStyles"; childGroupName = "cellStyleGroups"; } 
+        else return;
+
+        var tocTabPosition = layoutMetrics ? (doc.documentPreferences.pageWidth - layoutMetrics.margin) + "mm" : "180mm";
+        var dLen = definitions.length;
+        
+        Logger.info("Generating " + dLen + " " + styleType + " styles...");
+        
+        for (var i = 0; i < dLen; i++) {
+            var def = definitions[i]; var targetCollection = baseCollection;
+
+            if (def.group) {
+                var grp = resolveTargetGroup(groupCollection, def.group, childGroupName);
+                if (grp && grp.isValid) {
+                    targetCollection = grp[childName];
+                }
+            }
+
+            var style = targetCollection.itemByName(def.name);
+            if (!style.isValid) {
+                style = targetCollection.add({ name: def.name });
+            }
+            
+            // Cache Injection for newly minted styles
+            if (styleType === "paragraph") CacheManager.pStyles[def.name] = style;
+            else if (styleType === "character") CacheManager.cStyles[def.name] = style;
+            else if (styleType === "cell") CacheManager.cellStyles[def.name] = style;
+            
+            if (def.name.indexOf("TOC") === 0 && def.properties && def.properties.tabList) def.properties.tabList[0].position = tocTabPosition;
+            
+            if (def.properties) {
+                resolveStyleProperties(doc, styleType, def.properties);
+                try {
+                    style.properties = def.properties;
+                } catch (err) {
+                    Logger.warn("Failed to apply properties to " + styleType + " style '" + def.name + "': " + err.message);
+                }
+            }
+            
+            // Apply HTML/EPUB semantic export tag maps and CSS emission
+            if (def.exportTagMap || def.emitCss !== undefined) {
+                applyExportTagMaps(style, def.exportTagMap, def.emitCss);
+            }
+            
+            if (styleType === "paragraph" && def.grepStyles) {
+                while (style.nestedGrepStyles.length > 0) style.nestedGrepStyles.lastItem().remove();
+                var gLen = def.grepStyles.length;
+                for (var g = 0; g < gLen; g++) {
+                    var target = CacheManager.getCStyle(doc, def.grepStyles[g].charStyle);
+                    if (target) { var nG = style.nestedGrepStyles.add(); nG.appliedCharacterStyle = target; nG.grepExpression = def.grepStyles[g].expr; }
+                }
+            }
+            
+            // Prevent DOM thrashing by garbage collecting every 50 complex styles created
+            if (i > 0 && i % 50 === 0) { $.gc(); }
+        }
+    }
+
+    function resolveStyleProperties(doc, styleType, properties) {
+        /**
+         * Safe fallback resolver. If an invalid color string (like "None") is passed, it resolves to 
+         * the native InDesign swatch '[None]' to prevent the style application pipeline from silently aborting.
+         */
+        function getSafeSwatch(colorStr) {
+            if (colorStr === "None" || colorStr === "[None]") {
+                var s = doc.swatches.item("None");
+                if (!s.isValid) s = doc.swatches.item("[None]");
+                return s.isValid ? s : null;
+            }
+            return CacheManager.getSwatch(doc, colorStr);
+        }
+
+        if (properties.basedOn && typeof properties.basedOn === 'string') {
+            var bItem = null;
+            if (styleType === "paragraph") bItem = CacheManager.getPStyle(doc, properties.basedOn);
+            else if (styleType === "character") bItem = CacheManager.getCStyle(doc, properties.basedOn);
+            if (bItem) properties.basedOn = bItem;
+        }
+        if (styleType === "character" && (properties.basedOn === undefined || properties.basedOn === null)) {
+            properties.basedOn = CacheManager.getCStyle(doc, "[None]");
+        }
+        
+        if (properties.fillColor && typeof properties.fillColor === 'string') {
+            var fItem = getSafeSwatch(properties.fillColor);
+            if (fItem) properties.fillColor = fItem;
+        }
+        if (properties.strokeColor && typeof properties.strokeColor === 'string') {
+            var sItem = getSafeSwatch(properties.strokeColor);
+            if (sItem) properties.strokeColor = sItem;
+        }
+        
+        var extColors = ['topEdgeStrokeColor', 'bottomEdgeStrokeColor', 'leftEdgeStrokeColor', 'rightEdgeStrokeColor', 'columnStrokeColor', 'rowStrokeColor', 'topBorderStrokeColor', 'bottomBorderStrokeColor', 'leftBorderStrokeColor', 'rightBorderStrokeColor', 'firstAlternatingFillColor', 'secondAlternatingFillColor'];
+        for (var ec = 0; ec < extColors.length; ec++) {
+            if (properties[extColors[ec]] && typeof properties[extColors[ec]] === 'string') {
+                var cItem = getSafeSwatch(properties[extColors[ec]]);
+                if (cItem) properties[extColors[ec]] = cItem;
+            }
+        }
+        
+        if (properties.underlineType && typeof properties.underlineType === 'string') {
+            var uItem = CacheManager.getStrokeStyle(doc, properties.underlineType);
+            if (uItem) properties.underlineType = uItem;
+        }
+        if (properties.appliedParagraphStyle && typeof properties.appliedParagraphStyle === 'string') {
+            var apItem = CacheManager.getPStyle(doc, properties.appliedParagraphStyle);
+            if (apItem) properties.appliedParagraphStyle = apItem;
+        }
+        if (properties.headerRegionCellStyle && typeof properties.headerRegionCellStyle === 'string') {
+            var hrItem = CacheManager.getCellStyle(doc, properties.headerRegionCellStyle);
+            if (hrItem) properties.headerRegionCellStyle = hrItem;
+        }
+        if (properties.bodyRegionCellStyle && typeof properties.bodyRegionCellStyle === 'string') {
+            var brItem = CacheManager.getCellStyle(doc, properties.bodyRegionCellStyle);
+            if (brItem) properties.bodyRegionCellStyle = brItem;
+        }
+        if (properties.numberingList && typeof properties.numberingList === 'string') {
+            properties.numberingList = CacheManager.getList(doc, properties.numberingList);
+        }
+    }
+
+    function getOrCreateSwatch(doc, name, colorValue, model, space) {
+        var color = CacheManager.getSwatch(doc, name);
+        if (!color) {
+            color = doc.colors.add({ name: name, model: ColorModel.PROCESS, space: space, colorValue: colorValue });
+            CacheManager.swatches[name] = color;
+        } else if (color.constructor.name === "Color") {
+            color.properties = { model: ColorModel.PROCESS, space: space, colorValue: colorValue }; 
+        }
+    }
+
+    function getOrCreateGradient(doc, gradName, gradType, gradStops) {
+        var gradient = doc.gradients.itemByName(gradName);
+        if (!gradient.isValid) gradient = doc.gradients.add({ name: gradName, type: (gradType.toLowerCase() === "linear") ? GradientType.LINEAR : GradientType.RADIAL });
+        while (gradient.gradientStops.length > gradStops.length) gradient.gradientStops.lastItem().remove();
+        while (gradient.gradientStops.length < gradStops.length) gradient.gradientStops.add();
+        var kLen = gradStops.length;
+        for (var k = 0; k < kLen; k++) {
+            var stopColorSwatch = CacheManager.getSwatch(doc, gradStops[k].color) || doc.colors.item("Black");
+            gradient.gradientStops[k].stopColor = stopColorSwatch;
+            gradient.gradientStops[k].location = gradStops[k].location;
+        }
+    }
+
+    function processSafe(doc, paramsOrStep, stepFn) {
+        var undoName = (typeof paramsOrStep === "string") ? paramsOrStep : "Apply Brand System";
+        var callback = (typeof stepFn === "function") ? stepFn : function() {
+            return processDocument(doc, paramsOrStep);
+        };
+        var result;
+        if (typeof app !== "undefined" && app.doScript && typeof ScriptLanguage !== "undefined" && typeof UndoModes !== "undefined") {
+            app.doScript(function() {
+                result = callback();
+            }, ScriptLanguage.JAVASCRIPT, [], UndoModes.ENTIRE_SCRIPT, undoName);
+        } else {
+            result = callback();
+        }
+        return result;
+    }
+
+    return {
+        analyze: analyzeDocumentMetrics,
+        process: processDocument,
+        processDocument: processDocument,
+        buildDocument: processDocument,
+        processSafe: processSafe,
+        generateTemplate: generateTemplate,
+        createStyles: createStyles,
+        buildTypographyEngine: buildTypographyEngine,
+        buildColorEngine: buildColorEngine,
+        buildObjectEngineDynamic: buildObjectEngineDynamic,
+        config: config,
+        Logger: Logger
+    };
+})();

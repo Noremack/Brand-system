@@ -1,0 +1,167 @@
+/* --- MODULE CONTRACT: 02-utilities.jsxinc ---
+Purpose: Dimension math (sysUtils.scaleMm), type calculation (sysUtils.calcType), object merging, ES3 polyfills, telemetry Logger, and safeValue.
+Public entry points: sysUtils, Logger, safeValue.
+Side effects: Injects standard ES3 polyfills into Array and Object if missing in host environment.
+-------------------------------------------------- */
+
+// =============================================================================
+// 1. ES3 RUNTIME POLYFILLS
+// =============================================================================
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(searchElement, fromIndex) {
+        var k; if (this == null) throw new TypeError('"this" is null or not defined');
+        var o = Object(this); var len = o.length >>> 0; if (len === 0) return -1;
+        var n = fromIndex | 0; if (n >= len) return -1;
+        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+        while (k < len) { if (k in o && o[k] === searchElement) return k; k++; }
+        return -1;
+    };
+}
+
+if (!Array.prototype.forEach) {
+    Array.prototype.forEach = function(callback, thisArg) {
+        if (this == null) throw new TypeError(' this is null or not defined');
+        if (typeof callback !== "function") throw new TypeError(callback + ' is not a function');
+        var O = Object(this); var len = O.length >>> 0; var T;
+        if (arguments.length > 1) T = thisArg;
+        var k = 0;
+        while (k < len) { var kValue; if (k in O) { kValue = O[k]; callback.call(T, kValue, k, O); } k++; }
+    };
+}
+
+if (!Array.prototype.map) {
+    Array.prototype.map = function(callback, thisArg) {
+        if (this == null) throw new TypeError(' this is null or not defined');
+        if (typeof callback !== 'function') throw new TypeError(callback + ' is not a function');
+        var O = Object(this); var len = O.length >>> 0; var T;
+        if (arguments.length > 1) T = thisArg;
+        var A = new Array(len); var k = 0;
+        while (k < len) { var kValue, mappedValue; if (k in O) { kValue = O[k]; mappedValue = callback.call(T, kValue, k, O); A[k] = mappedValue; } k++; }
+        return A;
+    };
+}
+
+if (!Array.prototype.filter) {
+    Array.prototype.filter = function(callback, thisArg) {
+        if (this == null) throw new TypeError(' this is null or not defined');
+        if (typeof callback !== 'function') throw new TypeError(callback + ' is not a function');
+        var O = Object(this); var len = O.length >>> 0; var res = []; var T;
+        if (arguments.length > 1) T = thisArg;
+        for (var i = 0; i < len; i++) { if (i in O) { var val = O[i]; if (callback.call(T, val, i, O)) res.push(val); } }
+        return res;
+    };
+}
+
+if (!Object.keys) {
+    Object.keys = (function() {
+        var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'), dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'], dontEnumsLength = dontEnums.length;
+        return function(obj) { if (typeof obj !== 'function' && (typeof obj !== 'object' || obj === null)) throw new TypeError('Object.keys called on non-object');
+            var result = [], prop, i; for (prop in obj) { if (hasOwnProperty.call(obj, prop)) { result.push(prop); } } if (hasDontEnumBug) { for (i = 0; i < dontEnumsLength; i++) { if (hasOwnProperty.call(obj, dontEnums[i])) { result.push(dontEnums[i]); } } } return result; };
+    }());
+}
+
+// =============================================================================
+// 2. MATH & OBJECT UTILITIES
+// =============================================================================
+var sysUtils = {
+    merge: function(base, newProps) { 
+        var result = {}; 
+        for (var key in base) result[key] = base[key]; 
+        for (var k in newProps) result[k] = newProps[k]; 
+        return result; 
+    },
+    scaleMm: function(val, currentPt, referencePt) {
+        var scale = currentPt / referencePt;
+        return (Math.round((val * scale) * 4) / 4) + "mm";
+    },
+    calcType: function(scalePower, leadingRatio, basePt, scaleRatio) {
+        var size = Math.round(basePt * Math.pow(scaleRatio, scalePower));
+        return { pointSize: size + "pt", leading: Math.round(size * leadingRatio) + "pt" };
+    }
+};
+
+/**
+ * Safely evaluates a property accessor function with a default fallback.
+ */
+function safeValue(fn, fallback) {
+    try {
+        var val = fn();
+        return (val !== undefined && val !== null) ? val : fallback;
+    } catch (_) {
+        return fallback;
+    }
+}
+
+// =============================================================================
+// 3. TELEMETRY & EXECUTION LOGGER
+// =============================================================================
+var Logger = {
+    trace: [],
+    timers: {},
+    progressWindow: null,
+    progressText: null,
+    
+    showProgress: function(title) {
+        if (this.progressWindow) return;
+        try {
+            this.progressWindow = new Window("palette", title || "Processing...");
+            this.progressWindow.orientation = "column";
+            this.progressWindow.alignChildren = ["fill", "center"];
+            this.progressWindow.spacing = 15;
+            this.progressWindow.margins = 20;
+            
+            this.progressText = this.progressWindow.add("statictext", undefined, "Initializing...");
+            this.progressText.preferredSize.width = 300;
+
+            this.progressWindow.show();
+            this.progressWindow.update();
+        } catch (_) {}
+    },
+    
+    updateProgress: function(msg) {
+        if (this.progressWindow && this.progressText) {
+            try {
+                this.progressText.text = msg;
+                this.progressWindow.update();
+            } catch (_) {}
+        }
+    },
+    
+    closeProgress: function() {
+        if (this.progressWindow) {
+            try {
+                this.progressWindow.close();
+            } catch (_) {}
+            this.progressWindow = null;
+            this.progressText = null;
+        }
+    },
+
+    info: function(msg) { this.trace.push("[INFO] " + new Date().toTimeString().split(' ')[0] + " - " + msg); },
+    warn: function(msg) { this.trace.push("[WARN] " + new Date().toTimeString().split(' ')[0] + " - " + msg); },
+    startTimer: function(label) { 
+        this.timers[label] = new Date().getTime(); 
+        this.info("STARTED: " + label); 
+        this.updateProgress(label + "...");
+    },
+    endTimer: function(label, detail) { 
+        var ms = new Date().getTime() - this.timers[label]; 
+        var ext = detail ? " (" + detail + ")" : "";
+        this.info("COMPLETED: " + label + " in " + ms + "ms" + ext); 
+    },
+    dump: function(errorObj, isSuccess) {
+        var logFile = null;
+        try {
+            var scriptFolder = (typeof $ !== "undefined" && $.fileName) ? new File($.fileName).parent.fsName : "";
+            if (scriptFolder) {
+                logFile = new File(scriptFolder + "/BrandSystem_ExecutionLog.txt");
+                logFile.open("w");
+                for (var t = 0; t < this.trace.length; t++) {
+                    logFile.writeln(this.trace[t]);
+                }
+                if (errorObj) logFile.writeln("[ERROR] " + errorObj.message);
+                logFile.close();
+            }
+        } catch (_) {}
+    }
+};
