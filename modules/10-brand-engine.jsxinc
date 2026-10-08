@@ -244,7 +244,7 @@ var BrandSystem = (function() {
             buildObjectEngineDynamic(doc, typographySystem, activePrimaryTheme, prefs.primaryStyleTheme || "Blue");
             try {
                 if (doc && doc.insertLabel) {
-                    doc.insertLabel("QGDS_BrandSystem_Version", config.CACHE_VERSION || "2.3.0");
+                    doc.insertLabel("QGDS_BrandSystem_Version", config.CACHE_VERSION || "2.4.0");
                 }
             } catch (_) {}
         } finally {
@@ -281,7 +281,7 @@ var BrandSystem = (function() {
             if (manifestFile.open("r")) {
                 var manifestContent = manifestFile.read();
                 manifestFile.close();
-                var expectedVersion = config.CACHE_VERSION || "2.3.0";
+                var expectedVersion = config.CACHE_VERSION || "2.4.0";
                 var versionMatch = manifestContent.match(/"cache_version"\s*:\s*"([^"]+)"/);
                 if (!versionMatch || versionMatch[1] !== expectedVersion) {
                     return false;

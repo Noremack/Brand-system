@@ -23,7 +23,8 @@ var BATCH_PROCESS_ACTIVE = true; // Prevents the UI from launching when the engi
         var ddTheme = grpTheme.add("dropdownlist", undefined, BrandSystem.config.availableThemes);
         var tIdx = 0;
         for (var t=0; t<BrandSystem.config.availableThemes.length; t++) {
-            if (BrandSystem.config.availableThemes[t] === (userPrefs.primaryStyleTheme || "Blue")) { tIdx = t; break; }
+            var defaultTheme = (BrandSystem.config.availableThemes && BrandSystem.config.availableThemes.length > 0) ? BrandSystem.config.availableThemes[0] : "Blue";
+            if (BrandSystem.config.availableThemes[t] === (userPrefs.primaryStyleTheme || defaultTheme)) { tIdx = t; break; }
         }
         ddTheme.selection = tIdx;
 
@@ -108,7 +109,7 @@ var BATCH_PROCESS_ACTIVE = true; // Prevents the UI from launching when the engi
         var manifestFile = new File(folder.fsName + "/cache-manifest.json");
         if (manifestFile.open("w")) {
             var manifestObj = {
-                cache_version: BrandSystem.config.CACHE_VERSION || "2.3.0",
+                cache_version: BrandSystem.config.CACHE_VERSION || "2.4.0",
                 colorMode: cMode,
                 primaryStyleTheme: pTheme,
                 isReverseMode: userPrefs.isReverseMode,
@@ -117,7 +118,7 @@ var BATCH_PROCESS_ACTIVE = true; // Prevents the UI from launching when the engi
             };
             manifestFile.write(BrandSystem.BrandReports ? BrandSystem.BrandReports.formatReportJson(manifestObj) : "{}");
             manifestFile.close();
-            BrandSystem.Logger.info("Updated cache-manifest.json with version " + (BrandSystem.config.CACHE_VERSION || "2.3.0"));
+            BrandSystem.Logger.info("Updated cache-manifest.json with version " + (BrandSystem.config.CACHE_VERSION || "2.4.0"));
         }
     } catch (e) {
         BrandSystem.Logger.warn("Failed to write cache manifest: " + e.message);

@@ -77,7 +77,8 @@ function manualInit() {
         var listLbl = tabTheme.add("statictext", undefined, "Load Additional Themes:"); try { listLbl.graphics.font = ScriptUI.newFont("dialog", "BOLD", 12); } catch(e){}
         var cbSelectAll = tabTheme.add("checkbox", undefined, "Select All Themes");
         var themeList = tabTheme.add("listbox", undefined, BrandSystem.config.availableThemes, {multiselect: true}); themeList.preferredSize = [280, 110];
-        var savedThemes = getPref("selectedThemes", ["Blue"]);
+        var defaultTheme = (BrandSystem.config.availableThemes && BrandSystem.config.availableThemes.length > 0) ? [BrandSystem.config.availableThemes[0]] : ["Blue"];
+        var savedThemes = getPref("selectedThemes", defaultTheme);
         for (var i = 0; i < themeList.items.length; i++) { for (var j = 0; j < savedThemes.length; j++) { if (themeList.items[i].text === savedThemes[j]) { themeList.items[i].selected = true; break; } } }
         if (!themeList.selection) themeList.selection = 0;
 
@@ -180,7 +181,7 @@ function manualInit() {
 
         if (win.show() == 1) { 
             var sThemes = []; for (var i=0; i<themeList.items.length; i++) { if (themeList.items[i].selected) sThemes.push(themeList.items[i].text); }
-            if (sThemes.length === 0) sThemes.push("Blue");
+            if (sThemes.length === 0) sThemes.push((BrandSystem.config.availableThemes && BrandSystem.config.availableThemes.length > 0) ? BrandSystem.config.availableThemes[0] : "Blue");
             
             var params = { 
                 doReset: cbReset.value,

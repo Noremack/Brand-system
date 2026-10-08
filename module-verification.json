@@ -10,7 +10,7 @@
       "module": "01-config.jsxinc",
       "start_offset": 29655,
       "length": 1506,
-      "sha256": "cd811138eb6017c88b549989f4fe2523c19a99998571f2fe2b1f1fbfa4d7718e",
+      "sha256": "c4118a15fe4e8d487f71c72f5f81030c880d9f76dadd04484f4b498d2e58836a",
       "exact_contiguous_match": true
     },
     {
@@ -73,7 +73,7 @@
       "module": "10-brand-engine.jsxinc",
       "start_offset": 161856,
       "length": 44296,
-      "sha256": "a293e72e62c49eeae2786025e33c393ce35c7ef839fccb95c98e17a6e9c9fcab",
+      "sha256": "bb0ee4e3cc6044fccba8a36849961ce64dc305b93818dd165d8d000e049cfa22",
       "exact_contiguous_match": true
     },
     {

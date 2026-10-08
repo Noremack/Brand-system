@@ -60,7 +60,8 @@
 
     var themeGrp = tabTheme.add("group"); themeGrp.add("statictext", undefined, "Primary Theme:").preferredSize.width = 110;
     var themeDropdown = themeGrp.add("dropdownlist", undefined, BrandSystem.config.availableThemes); themeDropdown.preferredSize.width = 160;
-    var tIdx = 0; for (var t=0; t<BrandSystem.config.availableThemes.length; t++) { if (BrandSystem.config.availableThemes[t] === (getPref("primaryStyleTheme", "Blue"))) { tIdx = t; break; } }
+    var defaultTheme = (BrandSystem.config.availableThemes && BrandSystem.config.availableThemes.length > 0) ? BrandSystem.config.availableThemes[0] : "Blue";
+    var tIdx = 0; for (var t=0; t<BrandSystem.config.availableThemes.length; t++) { if (BrandSystem.config.availableThemes[t] === (getPref("primaryStyleTheme", defaultTheme))) { tIdx = t; break; } }
     themeDropdown.selection = tIdx;
 
     // TAB 2: TYPOGRAPHY
