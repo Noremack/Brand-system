@@ -12,6 +12,7 @@
 - **Dual Markdown & JSON Reports:** Supports on-demand export of human-readable Markdown publishing reports (`*-brand-report.md`) and structured JSON telemetry files (`*-brand-report.json`).
 - **Continual Log Rotation & Size Capping:** Enforced strict log rotation capping `BrandSystem_ContinualLog.txt` at 512 KB with automated backup archiving to `BrandSystem_ContinualLog_old.txt`, permanently resolving multi-megabyte disk bloat.
 - **Unified Ecosystem Assembly:** Extended `tools/assemble.js` to build, verify, bundle, and sync all three ecosystem packages (`InDesign HTML exporter`, `InDesign Brand System`, and `InDesign Semantic Styler`).
+- **Legacy Codebase & Redundant File Retirement:** Retired obsolete standalone `Backup Project.jsx` process (superseded by Git repository management), removed accidental root `BrandSystem_Prefs.jsx`, purged legacy `.system/lib/` and `.system/Engine.jsx` forwarding facades in favor of direct `modules/` consumption, cleaned up 3.1 MB stale disk log, and updated test suites to test numbered modules directly.
 - **Test Suite Expansion:** Added automated tests verifying SHA-256 checksums, distribution bundle validity, markdown/json generation, log rotation, and template cache invalidation (146 of 146 tests passing).
 
 ## [2.2.0] - 2026-10-08

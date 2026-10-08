@@ -27,36 +27,40 @@ To bypass the notorious performance bottlenecks of the InDesign DOM, this framew
 
 ## 🔧 Maintenance & Customization
 
-The system is highly modular. Most visual changes can be made by editing `.system/lib/Config.jsx` without touching the core engine.
+The system is highly modular. Most visual changes can be made by editing `brand-tokens.json` (or `modules/01-config.jsxinc`) without touching the core engine.
 
 **1. How to change Table Border Weights:**
-Open `Config.jsx`, locate `designTokens.table`, and adjust `borderWeightRatio` or `borderThickWeightRatio`.
+Open `brand-tokens.json`, locate `designTokens.table`, and adjust `borderWeightRatio` or `borderThickWeightRatio`.
 
 **2. How to add a new Page Format:**
-Open `Config.jsx` and add a new object to the `pageMatrix` array. Ensure you provide the `shortEdge`, `longEdge`, and `margin`.
+Open `brand-tokens.json` and add a new object to the `pageMatrix` array. Ensure you provide the `shortEdge`, `longEdge`, and `margin`.
 
 **3. CRITICAL: Rebuilding Templates**
-Because the engine uses a Hybrid Architecture, any changes made to `Config.jsx` or `StyleBuilder.jsx` **will not appear in your documents** until the style cache is rebuilt. **Always run `Update Brand Templates.jsx` from the Scripts Panel after making code changes!**
+Because the engine uses a Hybrid Architecture, any changes made to `brand-tokens.json` or `modules/` **will not appear in your documents** until the style cache is rebuilt. **Always run `Update Brand Templates.jsx` from the Scripts Panel after making code changes!**
 
 ## 📂 File Structure
 
 * **`Apply Brand System.jsx`** - The M3 Dashboard user-facing entry point. Applies the brand system to the active document.
 * **`Update Brand Templates.jsx`** - Utility script. Re-compiles the hidden `.indt` style caches based on UI configuration.
 * **`Batch Generate Base Templates.jsx`** - Distribution script. Generates empty ready-to-use `.indt` templates and PDF catalogs for every layout format.
-* **`Extract Config Information.jsx`** - Utility script. Reverse-engineers visually styled objects/text and outputs them as properly formatted mathematical scaling algorithms and JSON objects for `Config.jsx`.
+* **`Extract Config Information.jsx`** - Utility script. Reverse-engineers visually styled objects/text and outputs them as properly formatted mathematical scaling algorithms and JSON objects.
 * **`Export Custom Document.jsx`** - Packaging script. Processes bespoke InDesign layouts and routes them through the batch generation pipeline (PDFs, JPGs, INDTs) without destroying the active file.
 * **`Uninstall Brand System.jsx`** - Nuclear utility. Completely wipes all Brand styles, swatches, and master pages from an active document, leaving only raw unformatted text.
-* **`Backup Project.jsx`** - Creates a timestamped backup copy of the entire project ecosystem.
-* `.system/Engine.jsx` - The top-level orchestrator and routing pipeline.
-* `.system/lib/Config.jsx` - **The Brain.** Strictly centralized configuration for all color values, typography scaling tokens, layer Z-index structures, and layout definitions.
-* `.system/lib/StyleBuilder.jsx` - The factory module that parses design tokens into native InDesign DOM properties.
-* `.system/lib/LayoutEngine.jsx` - Handles document geometry, margins, layer stratification, and master pages.
-* `.system/lib/AssetInjector.jsx` - Manages proxying and injection of SVGs, footers, headers, and specimens.
-* `.system/lib/CleanupProtocol.jsx` - Safely resets and wipes existing document elements and styles.
-* `.system/lib/Logger.jsx` - Custom telemetry tracking execution times and writing local crash dumps.
-* `.system/lib/CacheManager.jsx` - Reduces redundant DOM queries.
-* `.system/lib/sysUtils.jsx` - Type calculation and dimension scaling logic.
-* `.system/lib/UIUtils.jsx` - Shared UI parsing and preference management for dialogs.
+* **`brand-tokens.json`** - **The Brain.** Decoupled design tokens, color swatches, typography scales, and format definitions.
+* **`module-verification.json`** - Cryptographic SHA-256 integrity manifest for all 11 modules.
+* **`modules/`** - Numbered single-responsibility ExtendScript modules:
+  * `01-config.jsxinc`: Configuration constants, matrices, and fallback tokens.
+  * `02-utilities.jsxinc`: Dimension math, typography scaling, ES3 polyfills, and telemetry Logger.
+  * `03-token-loader.jsxinc`: Multi-tier token resolution and JSON parser.
+  * `04-cache-manager.jsxinc`: In-memory style and swatch cache.
+  * `05-style-builder.jsxinc`: Declarative QGDS component styles with native `styleExportTagMaps`.
+  * `06-layout-engine.jsxinc`: Page geometry, margins, layer stratification, and master pages.
+  * `07-asset-injector.jsxinc`: Header/footer vector placement and specimen injection.
+  * `08-cleanup-protocol.jsxinc`: Document sanitization and brand reset routines.
+  * `09-ui-utils.jsxinc`: ScriptUI dashboard layout and preference persistence.
+  * `10-brand-engine.jsxinc`: Master orchestrator, cache verification, and atomic transaction handling.
+  * `11-reports.jsxinc`: Structured Markdown & JSON publishing diagnostics and log rotation.
+* **`.system/Resources/`** - Pre-compiled `.indt` format templates and cache manifests.
 
 ## 🚀 Installation & Usage
 
