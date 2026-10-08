@@ -859,7 +859,7 @@ function injectBackCoverElement(doc, layoutMetrics, customDir, primaryTheme, isR
         tf.contents = "13 QGOV (137468)\nwww.tmr.qld.gov.au | www.qld.gov.au";
         
         var targetBold = isReverseMode ? "Bold" : "Bold Reverse";
-        var boldRevStyle = CacheManager.getCStyle(doc, targetBold);
+        var boldRevStyle = CacheManager.getCStyle(doc, targetBold); if (!boldRevStyle && doc.characterStyleGroups && doc.characterStyleGroups.itemByName("Reverse").isValid) { var grpC = doc.characterStyleGroups.itemByName("Reverse").characterStyles.itemByName(targetBold); if (grpC && grpC.isValid) boldRevStyle = grpC; } if (!boldRevStyle) boldRevStyle = CacheManager.getCStyle(doc, "Bold");
         if (boldRevStyle && boldRevStyle.isValid) {
             try {
                 tf.texts[0].characters.itemByRange(0, 15).appliedCharacterStyle = boldRevStyle;

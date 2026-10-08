@@ -51,34 +51,34 @@
     {
       "module": "07-asset-injector.jsxinc",
       "start_offset": 95904,
-      "length": 53789,
-      "sha256": "651f51ae9643105230218c6d3e2c0705fca95c8023b1d158b0798ab11e22a919",
+      "length": 54114,
+      "sha256": "08bc5de5dce830a8deba2da4e30b7bc17518b4ddbc775851ba24dc1a609fd83b",
       "exact_contiguous_match": true
     },
     {
       "module": "08-cleanup-protocol.jsxinc",
-      "start_offset": 149694,
+      "start_offset": 150019,
       "length": 6950,
       "sha256": "fed0851b6d1233bdacb269688c019476f8e31a5a5ea4f54539a0f76ff6f2a1ec",
       "exact_contiguous_match": true
     },
     {
       "module": "09-ui-utils.jsxinc",
-      "start_offset": 156645,
+      "start_offset": 156970,
       "length": 5210,
       "sha256": "04e00eebe392d35086fe9a815caccaa4dc312d93f7e9bf95b915590f20d93c14",
       "exact_contiguous_match": true
     },
     {
       "module": "10-brand-engine.jsxinc",
-      "start_offset": 161856,
+      "start_offset": 162181,
       "length": 44628,
       "sha256": "d3e0c878caf89ecf3719ecb5a872bf557ca84d76e94c6a655621e6b227918947",
       "exact_contiguous_match": true
     },
     {
       "module": "11-reports.jsxinc",
-      "start_offset": 206485,
+      "start_offset": 206810,
       "length": 14667,
       "sha256": "c0e35039b333a6f9fb06110ce299607788edce25970b8b104c6a9fbab0776382",
       "exact_contiguous_match": true
