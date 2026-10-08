@@ -137,6 +137,31 @@ var StyleBuilder = {
             });
         }
 
+        // QGDS Compound Component Object Styles
+        var qgdsCallouts = [
+            { name: "QGDS / Callout - Informative", group: "QGDS / Callout", properties: { enableFill: true, fillColor: theme.frameFillColor, enableStroke: true, strokeColor: theme.accentColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rSmall, topRightCornerRadius: rSmall, bottomLeftCornerRadius: rSmall, bottomRightCornerRadius: rSmall } },
+            { name: "QGDS / Callout - Warning", group: "QGDS / Callout", properties: { enableFill: true, fillColor: "Neutral - Extra Light", enableStroke: true, strokeColor: theme.accentColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rSmall, topRightCornerRadius: rSmall, bottomLeftCornerRadius: rSmall, bottomRightCornerRadius: rSmall } },
+            { name: "QGDS / Callout - Error", group: "QGDS / Callout", properties: { enableFill: true, fillColor: "Neutral - Extra Light", enableStroke: true, strokeColor: theme.themeExtraDarkColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rSmall, topRightCornerRadius: rSmall, bottomLeftCornerRadius: rSmall, bottomRightCornerRadius: rSmall } },
+            { name: "QGDS / Callout - Success", group: "QGDS / Callout", properties: { enableFill: true, fillColor: theme.themeWhiteColor, enableStroke: true, strokeColor: theme.accentColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rSmall, topRightCornerRadius: rSmall, bottomLeftCornerRadius: rSmall, bottomRightCornerRadius: rSmall } },
+            { name: "QGDS / Callout - Accent", group: "QGDS / Callout", properties: { enableFill: true, fillColor: theme.frameFillColor, enableStroke: true, strokeColor: theme.accentColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rSmall, topRightCornerRadius: rSmall, bottomLeftCornerRadius: rSmall, bottomRightCornerRadius: rSmall } }
+        ];
+        for (var qc = 0; qc < qgdsCallouts.length; qc++) baseStyles.push(qgdsCallouts[qc]);
+
+        var qgdsCards = [
+            { name: "QGDS / Card - Default", group: "QGDS / Card", properties: { enableFill: true, fillColor: "Paper", enableStroke: true, strokeColor: theme.subtleStrokeColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rMedium, topRightCornerRadius: rMedium, bottomLeftCornerRadius: rMedium, bottomRightCornerRadius: rMedium } },
+            { name: "QGDS / Card - Feature", group: "QGDS / Card", properties: { enableFill: true, fillColor: theme.frameFillColor, enableStroke: true, strokeColor: theme.accentColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rMedium, topRightCornerRadius: rMedium, bottomLeftCornerRadius: rMedium, bottomRightCornerRadius: rMedium } },
+            { name: "QGDS / Card - Compact", group: "QGDS / Card", properties: { enableFill: true, fillColor: "Paper", enableStroke: true, strokeColor: theme.subtleStrokeColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rSmall, topRightCornerRadius: rSmall, bottomLeftCornerRadius: rSmall, bottomRightCornerRadius: rSmall } },
+            { name: "QGDS / Card - Action", group: "QGDS / Card", properties: { enableFill: true, fillColor: "Paper", enableStroke: true, strokeColor: theme.accentColor, strokeWeight: typo.baseStroke, topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER, bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER, topLeftCornerRadius: rMedium, topRightCornerRadius: rMedium, bottomLeftCornerRadius: rMedium, bottomRightCornerRadius: rMedium } }
+        ];
+        for (var qk = 0; qk < qgdsCards.length; qk++) baseStyles.push(qgdsCards[qk]);
+
+        var qgdsBanners = [
+            { name: "QGDS / Banner - Light", group: "QGDS / Banner", properties: { enableFill: true, fillColor: theme.themeWhiteColor, enableStroke: false, strokeWeight: 0 } },
+            { name: "QGDS / Banner - Dark", group: "QGDS / Banner", properties: { enableFill: true, fillColor: theme.themeExtraDarkColor, enableStroke: false, strokeWeight: 0 } },
+            { name: "QGDS / Banner - Default", group: "QGDS / Banner", properties: { enableFill: true, fillColor: theme.themeName + " - Medium", enableStroke: false, strokeWeight: 0 } }
+        ];
+        for (var qb = 0; qb < qgdsBanners.length; qb++) baseStyles.push(qgdsBanners[qb]);
+
         return baseStyles;
     },
 
@@ -152,17 +177,35 @@ var StyleBuilder = {
         var smallShift = Math.round(smallSize * ts.iconBaselineShiftRatio) + "pt"; 
         var fullStroke = typo.baseStroke; var halfStroke = (parseFloat(typo.baseStroke) * ts.underlineThinRatio) + "pt";
         var isReverse = (suffix !== ""); var accentColor = isReverse ? "Neutral - White" : theme.accentColor;
+        function nGroup(grp) { return isReverse ? ("Reverse / " + grp) : grp; }
 
         var styles = [
-            { name: n("Bold"), properties: { fontStyle: "Bold" } }, { name: n("Italic"), properties: { fontStyle: "Italic" } },
-            { name: n("Accent"), properties: { fillColor: accentColor } }, { name: n("Accent Semibold"), properties: { fontStyle: "SemiBold", fillColor: accentColor } },
-            { name: n("Underline 1pt line"), properties: { underline: true, underlineWeight: fullStroke } }, { name: n("Underline .5 line"), properties: { underline: true, underlineWeight: halfStroke } },
-            { name: n("Underline 1pt japanese dots"), properties: { underline: true, underlineWeight: fullStroke, underlineType: "Japanese Dots" } },
-            { name: n("Offset Custom Icon"), properties: { baselineShift: standardShift } }, { name: n("Offset Custom Icon Small"), properties: { baselineShift: smallShift } }
+            { name: n("Bold"), properties: { fontStyle: "Bold" }, exportTagMap: { exportTag: "strong", exportClass: "qld__bold" }, emitCss: true },
+            { name: n("Italic"), properties: { fontStyle: "Italic" }, exportTagMap: { exportTag: "em", exportClass: "qld__italic" }, emitCss: true },
+            { name: n("Accent"), properties: { fillColor: accentColor }, exportTagMap: { exportTag: "span", exportClass: "qld__accent-text" }, emitCss: true },
+            { name: n("Accent Semibold"), properties: { fontStyle: "SemiBold", fillColor: accentColor }, exportTagMap: { exportTag: "span", exportClass: "qld__accent-text--semibold" }, emitCss: true },
+            { name: n("Underline 1pt line"), properties: { underline: true, underlineWeight: fullStroke }, exportTagMap: { exportTag: "span", exportClass: "qld__underline" }, emitCss: true },
+            { name: n("Underline .5 line"), properties: { underline: true, underlineWeight: halfStroke }, exportTagMap: { exportTag: "span", exportClass: "qld__underline--thin" }, emitCss: true },
+            { name: n("Underline 1pt japanese dots"), properties: { underline: true, underlineWeight: fullStroke, underlineType: "Japanese Dots" }, exportTagMap: { exportTag: "span", exportClass: "qld__underline--dotted" }, emitCss: true },
+            { name: n("Offset Custom Icon"), properties: { baselineShift: standardShift }, exportTagMap: { exportTag: "span", exportClass: "qld__icon" }, emitCss: true },
+            { name: n("Offset Custom Icon Small"), properties: { baselineShift: smallShift }, exportTagMap: { exportTag: "span", exportClass: "qld__icon--small" }, emitCss: true },
+
+            // QGDS Tag Badges
+            { group: nGroup("QGDS / Tag"), name: n("QGDS / Tag - Default"), properties: { fontStyle: "Medium" }, exportTagMap: { exportTag: "span", exportClass: "qld__tag" }, emitCss: true },
+            { group: nGroup("QGDS / Tag"), name: n("QGDS / Tag - Success"), properties: { fontStyle: "Medium" }, exportTagMap: { exportTag: "span", exportClass: "qld__tag qld__tag--success" }, emitCss: true },
+            { group: nGroup("QGDS / Tag"), name: n("QGDS / Tag - Warning"), properties: { fontStyle: "Medium" }, exportTagMap: { exportTag: "span", exportClass: "qld__tag qld__tag--warning" }, emitCss: true },
+            { group: nGroup("QGDS / Tag"), name: n("QGDS / Tag - Error"), properties: { fontStyle: "Medium" }, exportTagMap: { exportTag: "span", exportClass: "qld__tag qld__tag--error" }, emitCss: true },
+            { group: nGroup("QGDS / Tag"), name: n("QGDS / Tag - Info"), properties: { fontStyle: "Medium" }, exportTagMap: { exportTag: "span", exportClass: "qld__tag qld__tag--info" }, emitCss: true },
+            { group: nGroup("QGDS / Tag"), name: n("QGDS / Tag - Neutral"), properties: { fontStyle: "Medium" }, exportTagMap: { exportTag: "span", exportClass: "qld__tag qld__tag--neutral" }, emitCss: true },
+
+            // Direction / CTA Link Character Style
+            { group: nGroup("QGDS / Links"), name: n("QGDS / CTA"), properties: { fontStyle: "Bold", underline: true, fillColor: accentColor }, exportTagMap: { exportTag: "a", exportClass: "qld__cta-link" }, emitCss: true }
         ];
 
         if (isReverse) {
-            for (var i = 0; i < styles.length; i++) { styles[i].group = "Reverse"; }
+            for (var i = 0; i < styles.length; i++) {
+                if (!styles[i].group) styles[i].group = "Reverse";
+            }
         }
         return styles;
     },
@@ -171,6 +214,7 @@ var StyleBuilder = {
         var sfx = suffix ? " " + suffix : ""; function n(name) { return name + sfx; } 
         var PT_TO_MM = config.PT_TO_MM; var tMat = config.typographyMatrix; var dt = config.designTokens.list;
         var isReverse = (suffix !== "");
+        function nGroup(grp) { return isReverse ? ("Reverse / " + grp) : grp; }
 
         function calc(scalePower, leadingRatio) { return sysUtils.calcType(scalePower, leadingRatio || typo.baseLeadingRatio, typo.baseFontSize, typo.scaleRatio); }
         function space(ratio) { if (ratio === 0) return "0mm"; return (Math.round((typo.baseFontSize * ratio * PT_TO_MM) * 4) / 4) + "mm"; }
@@ -188,6 +232,7 @@ var StyleBuilder = {
         var smallLeadingPt = Math.round(smallSizePt * (typo.baseLeadingRatio || 1.25)); var smallListSpaceBeforeMm = smallLeadingPt * dt.spaceRatio * PT_TO_MM; var smallListSpaceBefore = (Math.round(smallListSpaceBeforeMm * 4) / 4) + "mm"; var smallListSpaceBetween = (Math.round((smallListSpaceBeforeMm / 2) * 4) / 4) + "mm";
 
         function buildListStyles(baseStyleName, baseProps, indentValue, maxLevel) {
+            var isNumbered = (baseProps.bulletsAndNumberingListType === ListType.NUMBERED_LIST);
             var listStyles = [];
             for (var i = 1; i <= maxLevel; i++) {
                 var currentStyleName = n(baseStyleName + " " + i);
@@ -195,27 +240,32 @@ var StyleBuilder = {
                 var levelProps = { spaceBefore: listSpaceBefore, spaceBetweenParagraphsUsingSameStyle: listSpaceBetween, leftIndent: indentString, tabList: [{ alignment: TabStopAlignment.LEFT_ALIGN, position: indentString }] };
                 if (i === 1) { levelProps.basedOn = baseProps.basedOn; levelProps.firstLineIndent = "-" + indentValue; } else { levelProps.basedOn = n(baseStyleName + " " + (i - 1)); }
                 if (baseProps.bulletsAndNumberingListType) levelProps.bulletsAndNumberingListType = baseProps.bulletsAndNumberingListType; if (baseProps.numberingList) levelProps.numberingList = baseProps.numberingList; if (baseProps.numberingFormat) levelProps.numberingFormat = baseProps.numberingFormat;
-                listStyles.push({ name: currentStyleName, properties: i === 1 ? sysUtils.merge(baseProps, levelProps) : levelProps });
+                listStyles.push({
+                    name: currentStyleName,
+                    properties: i === 1 ? sysUtils.merge(baseProps, levelProps) : levelProps,
+                    exportTagMap: { exportTag: "li", exportClass: isNumbered ? "qld__ordered-list-item" : "qld__list-item" },
+                    emitCss: true
+                });
             }
             return listStyles;
         }
         
         var styles = [
-            { name: n("Paragraph"), properties: { appliedFont: typo.primaryFontName, fontStyle: "Light", pointSize: typo.baseFontSize + "pt", leading: typo.baseLeadingInPt + "pt", justification: Justification.LEFT_ALIGN, hyphenation: false, fillColor: theme.primaryTextColor, spaceBefore: (Math.round((typo.baseLeadingInPt * PT_TO_MM) * 4) / 4) + "mm" } },
-            { name: n("Paragraph No Spacing"), properties: { basedOn: n("Paragraph"), spaceBefore: "0mm", spaceAfter: "0mm" } },
-            { name: n("Paragraph Small"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor }, calc(tMat.small.scale)) },
-            { name: n("Paragraph Small No Spacing"), properties: { basedOn: n("Paragraph Small"), spaceBefore: "0mm", spaceAfter: "0mm" } },
+            { name: n("Paragraph"), properties: { appliedFont: typo.primaryFontName, fontStyle: "Light", pointSize: typo.baseFontSize + "pt", leading: typo.baseLeadingInPt + "pt", justification: Justification.LEFT_ALIGN, hyphenation: false, fillColor: theme.primaryTextColor, spaceBefore: (Math.round((typo.baseLeadingInPt * PT_TO_MM) * 4) / 4) + "mm" }, exportTagMap: { exportTag: "p", exportClass: "qld__body-text" }, emitCss: true },
+            { name: n("Paragraph No Spacing"), properties: { basedOn: n("Paragraph"), spaceBefore: "0mm", spaceAfter: "0mm" }, exportTagMap: { exportTag: "p", exportClass: "qld__body-text" }, emitCss: true },
+            { name: n("Paragraph Small"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor }, calc(tMat.small.scale)), exportTagMap: { exportTag: "small", exportClass: "qld__caption-text" }, emitCss: true },
+            { name: n("Paragraph Small No Spacing"), properties: { basedOn: n("Paragraph Small"), spaceBefore: "0mm", spaceAfter: "0mm" }, exportTagMap: { exportTag: "small", exportClass: "qld__caption-text" }, emitCss: true },
             
-            { name: n("List Custom Icon"), properties: { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, spaceBefore: listSpaceBefore, spaceBetweenParagraphsUsingSameStyle: listSpaceBetween, leftIndent: dynamicIconIndent, firstLineIndent: "-" + dynamicIconIndent, tabList: [{ alignment: TabStopAlignment.LEFT_ALIGN, position: dynamicIconIndent }] }, grepStyles: [{ charStyle: n("Offset Custom Icon"), expr: "~a\\t~i" }, { charStyle: n("Offset Custom Icon"), expr: "~a\\t" }] },
-            { name: n("List Custom Icon Small"), properties: { basedOn: n("Paragraph Small"), fillColor: theme.primaryTextColor, spaceBefore: smallListSpaceBefore, spaceBetweenParagraphsUsingSameStyle: smallListSpaceBetween, leftIndent: dynamicIconSmallIndent, firstLineIndent: "-" + dynamicIconSmallIndent, tabList: [{ alignment: TabStopAlignment.LEFT_ALIGN, position: dynamicIconSmallIndent }] }, grepStyles: [{ charStyle: n("Offset Custom Icon Small"), expr: "~a\\t~i" }, { charStyle: n("Offset Custom Icon Small"), expr: "~a\\t" }] },
+            { name: n("List Custom Icon"), properties: { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, spaceBefore: listSpaceBefore, spaceBetweenParagraphsUsingSameStyle: listSpaceBetween, leftIndent: dynamicIconIndent, firstLineIndent: "-" + dynamicIconIndent, tabList: [{ alignment: TabStopAlignment.LEFT_ALIGN, position: dynamicIconIndent }] }, grepStyles: [{ charStyle: n("Offset Custom Icon"), expr: "~a\\t~i" }, { charStyle: n("Offset Custom Icon"), expr: "~a\\t" }], exportTagMap: { exportTag: "li", exportClass: "qld__list-item" }, emitCss: true },
+            { name: n("List Custom Icon Small"), properties: { basedOn: n("Paragraph Small"), fillColor: theme.primaryTextColor, spaceBefore: smallListSpaceBefore, spaceBetweenParagraphsUsingSameStyle: smallListSpaceBetween, leftIndent: dynamicIconSmallIndent, firstLineIndent: "-" + dynamicIconSmallIndent, tabList: [{ alignment: TabStopAlignment.LEFT_ALIGN, position: dynamicIconSmallIndent }] }, grepStyles: [{ charStyle: n("Offset Custom Icon Small"), expr: "~a\\t~i" }, { charStyle: n("Offset Custom Icon Small"), expr: "~a\\t" }], exportTagMap: { exportTag: "li", exportClass: "qld__list-item" }, emitCss: true },
             
-            { name: n("Introduction Paragraph"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fontStyle: "Regular", fillColor: theme.primaryTextColor }, calc(tMat.intro.scale)) },
-            { name: n("Title"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fontStyle: "Black", fillColor: theme.primaryHeadingColor, keepWithNext: 1 }, calc(tMat.title.scale)) },
-            { name: n("Subtitle"), properties: sysUtils.merge({ basedOn: n("Title"), fontStyle: "Regular", fillColor: theme.primaryHeadingColor, spaceBefore: space(tMat.subtitle.space) }, calc(tMat.subtitle.scale)) },
-            { name: n("Heading 1"), properties: sysUtils.merge({ basedOn: n("Title"), fontStyle: "Bold", fillColor: theme.primaryHeadingColor, spaceBefore: space(tMat.heading1.space) }, calc(tMat.heading1.scale)) },
-            { name: n("Heading 2"), properties: sysUtils.merge({ basedOn: n("Heading 1"), fontStyle: "Medium", fillColor: theme.primaryHeadingColor, spaceBefore: space(tMat.heading2.space) }, calc(tMat.heading2.scale)) },
-            { name: n("Heading 3"), properties: sysUtils.merge({ basedOn: n("Heading 2"), fillColor: theme.secondaryHeadingColor }, calc(tMat.heading3.scale)) },
-            { name: n("Heading 4"), properties: sysUtils.merge({ basedOn: n("Heading 3"), fontStyle: "Bold", fillColor: theme.secondaryHeadingColor, spaceBefore: space(tMat.heading4.space) }, calc(tMat.heading4.scale)) }
+            { name: n("Introduction Paragraph"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fontStyle: "Regular", fillColor: theme.primaryTextColor }, calc(tMat.intro.scale)), exportTagMap: { exportTag: "p", exportClass: "qld__abstract" }, emitCss: true },
+            { name: n("Title"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fontStyle: "Black", fillColor: theme.primaryHeadingColor, keepWithNext: 1 }, calc(tMat.title.scale)), exportTagMap: { exportTag: "h1", exportClass: "qld__title" }, emitCss: true },
+            { name: n("Subtitle"), properties: sysUtils.merge({ basedOn: n("Title"), fontStyle: "Regular", fillColor: theme.primaryHeadingColor, spaceBefore: space(tMat.subtitle.space) }, calc(tMat.subtitle.scale)), exportTagMap: { exportTag: "p", exportClass: "qld__subtitle" }, emitCss: true },
+            { name: n("Heading 1"), properties: sysUtils.merge({ basedOn: n("Title"), fontStyle: "Bold", fillColor: theme.primaryHeadingColor, spaceBefore: space(tMat.heading1.space) }, calc(tMat.heading1.scale)), exportTagMap: { exportTag: "h1", exportClass: "qld__heading--1" }, emitCss: true },
+            { name: n("Heading 2"), properties: sysUtils.merge({ basedOn: n("Heading 1"), fontStyle: "Medium", fillColor: theme.primaryHeadingColor, spaceBefore: space(tMat.heading2.space) }, calc(tMat.heading2.scale)), exportTagMap: { exportTag: "h2", exportClass: "qld__heading--2" }, emitCss: true },
+            { name: n("Heading 3"), properties: sysUtils.merge({ basedOn: n("Heading 2"), fillColor: theme.secondaryHeadingColor }, calc(tMat.heading3.scale)), exportTagMap: { exportTag: "h3", exportClass: "qld__heading--3" }, emitCss: true },
+            { name: n("Heading 4"), properties: sysUtils.merge({ basedOn: n("Heading 3"), fontStyle: "Bold", fillColor: theme.secondaryHeadingColor, spaceBefore: space(tMat.heading4.space) }, calc(tMat.heading4.scale)), exportTagMap: { exportTag: "h4", exportClass: "qld__heading--4" }, emitCss: true }
         ];
 
         var bullets = buildListStyles("List Bullet", { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, bulletsAndNumberingListType: ListType.BULLET_LIST }, bulletBaseIndent, 3);
@@ -225,21 +275,72 @@ var StyleBuilder = {
         for(var nIdx=0; nIdx<numbers.length; nIdx++) styles.push(numbers[nIdx]);
 
         var secondaryStyles = [
-            { name: n("Figure Caption"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.secondaryHeadingColor, fontStyle: "Medium" }, calc(tMat.caption.scale)) }, 
-            { name: n("Caption"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Regular" }, calc(tMat.caption.scale)) },
-            { name: n("Notes"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Light" }, calc(tMat.caption.scale)) }, 
-            { name: n("Footer"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Regular" }, calc(tMat.footer.scale)) },
-            { name: n("TOC 1"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Medium", tabList: [{ alignment: TabStopAlignment.RIGHT_ALIGN }] }, calc(tMat.toc1.scale)) },
-            { name: n("TOC 2"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Regular", tabList: [{ alignment: TabStopAlignment.RIGHT_ALIGN }] }, calc(tMat.toc2.scale)) },
-            { name: n("TOC 3"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Light", tabList: [{ alignment: TabStopAlignment.RIGHT_ALIGN }] }, calc(tMat.toc3.scale)) },
-            { name: n("Cell - Header Text Solid"), properties: { basedOn: n("Paragraph"), fontStyle: "Bold", pointSize: typo.baseFontSize + "pt", leading: typo.baseLeadingInPt + "pt", fillColor: theme.tableHeaderText, spaceBefore: 0, spaceAfter: 0 } },
-            { name: n("Cell - Header Text Clean"), properties: { basedOn: n("Paragraph"), fontStyle: "Bold", pointSize: typo.baseFontSize + "pt", leading: typo.baseLeadingInPt + "pt", fillColor: theme.primaryHeadingColor, spaceBefore: 0, spaceAfter: 0 } }
+            { name: n("Figure Caption"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.secondaryHeadingColor, fontStyle: "Medium" }, calc(tMat.caption.scale)), exportTagMap: { exportTag: "figcaption", exportClass: "qld__figure__caption" }, emitCss: true }, 
+            { name: n("Caption"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Regular" }, calc(tMat.caption.scale)), exportTagMap: { exportTag: "figcaption", exportClass: "qld__caption" }, emitCss: true },
+            { name: n("Notes"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Light" }, calc(tMat.caption.scale)), exportTagMap: { exportTag: "aside", exportClass: "qld__note" }, emitCss: true }, 
+            { name: n("Footer"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Regular" }, calc(tMat.footer.scale)), exportTagMap: { exportTag: "footer", exportClass: "qld__footer" }, emitCss: true },
+            { name: n("TOC 1"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Medium", tabList: [{ alignment: TabStopAlignment.RIGHT_ALIGN }] }, calc(tMat.toc1.scale)), exportTagMap: { exportTag: "nav", exportClass: "qld__in-page-nav__link" }, emitCss: true },
+            { name: n("TOC 2"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Regular", tabList: [{ alignment: TabStopAlignment.RIGHT_ALIGN }] }, calc(tMat.toc2.scale)), exportTagMap: { exportTag: "nav", exportClass: "qld__in-page-nav__link" }, emitCss: true },
+            { name: n("TOC 3"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, fontStyle: "Light", tabList: [{ alignment: TabStopAlignment.RIGHT_ALIGN }] }, calc(tMat.toc3.scale)), exportTagMap: { exportTag: "nav", exportClass: "qld__in-page-nav__link" }, emitCss: true },
+            { name: n("Cell - Header Text Solid"), properties: { basedOn: n("Paragraph"), fontStyle: "Bold", pointSize: typo.baseFontSize + "pt", leading: typo.baseLeadingInPt + "pt", fillColor: theme.tableHeaderText, spaceBefore: 0, spaceAfter: 0 }, exportTagMap: { exportTag: "th", exportClass: "qld__table__header" }, emitCss: true },
+            { name: n("Cell - Header Text Clean"), properties: { basedOn: n("Paragraph"), fontStyle: "Bold", pointSize: typo.baseFontSize + "pt", leading: typo.baseLeadingInPt + "pt", fillColor: theme.primaryHeadingColor, spaceBefore: 0, spaceAfter: 0 }, exportTagMap: { exportTag: "th", exportClass: "qld__table__header" }, emitCss: true }
         ];
 
         for(var s=0; s<secondaryStyles.length; s++) styles.push(secondaryStyles[s]);
 
+        // QGDS Compound Component Paragraph Styles
+        var qgdsComponents = [
+            // Callout
+            { group: nGroup("QGDS / Callout"), name: n("QGDS / Callout / Heading"), properties: sysUtils.merge({ basedOn: n("Heading 4"), fontStyle: "Bold", fillColor: theme.secondaryHeadingColor, spaceBefore: space(0.5), spaceAfter: space(0.25) }, calc(tMat.heading4.scale)), exportTagMap: { exportTag: "h4", exportClass: "qld__callout__heading" }, emitCss: true },
+            { group: nGroup("QGDS / Callout"), name: n("QGDS / Callout / Body"), properties: { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, spaceBefore: space(0.25), spaceAfter: "0mm" }, exportTagMap: { exportTag: "p", exportClass: "qld__callout__body" }, emitCss: true },
+            
+            // Card
+            { group: nGroup("QGDS / Card"), name: n("QGDS / Card / Title"), properties: sysUtils.merge({ basedOn: n("Heading 3"), fontStyle: "Bold", fillColor: theme.primaryHeadingColor, spaceBefore: "0mm", spaceAfter: space(0.25) }, calc(tMat.heading3.scale)), exportTagMap: { exportTag: "h3", exportClass: "qld__card__title" }, emitCss: true },
+            { group: nGroup("QGDS / Card"), name: n("QGDS / Card / Body"), properties: { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, spaceBefore: space(0.25), spaceAfter: space(0.25) }, exportTagMap: { exportTag: "p", exportClass: "qld__card__body" }, emitCss: true },
+            { group: nGroup("QGDS / Card"), name: n("QGDS / Card / Action"), properties: sysUtils.merge({ basedOn: n("Paragraph Small"), fontStyle: "SemiBold", fillColor: theme.accentColor, spaceBefore: space(0.25) }, calc(tMat.small.scale)), exportTagMap: { exportTag: "a", exportClass: "qld__card__action" }, emitCss: true },
+            
+            // Accordion
+            { group: nGroup("QGDS / Accordion"), name: n("QGDS / Accordion / Header"), properties: { basedOn: n("Paragraph"), fontStyle: "Bold", fillColor: theme.primaryHeadingColor, spaceBefore: space(0.5), spaceAfter: space(0.25) }, exportTagMap: { exportTag: "details", exportClass: "qld__accordion__title" }, emitCss: true },
+            { group: nGroup("QGDS / Accordion"), name: n("QGDS / Accordion / Body"), properties: { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, spaceBefore: space(0.25), spaceAfter: space(0.25) }, exportTagMap: { exportTag: "div", exportClass: "qld__accordion__body" }, emitCss: true },
+            
+            // Banner
+            { group: nGroup("QGDS / Banner"), name: n("QGDS / Banner / Title"), properties: sysUtils.merge({ basedOn: n("Title"), fontStyle: "Black", fillColor: theme.primaryHeadingColor }, calc(tMat.title.scale)), exportTagMap: { exportTag: "h1", exportClass: "qld__banner__title" }, emitCss: true },
+            { group: nGroup("QGDS / Banner"), name: n("QGDS / Banner / Abstract"), properties: sysUtils.merge({ basedOn: n("Introduction Paragraph"), fontStyle: "Regular", fillColor: theme.primaryTextColor }, calc(tMat.intro.scale)), exportTagMap: { exportTag: "p", exportClass: "qld__banner__abstract" }, emitCss: true },
+            
+            // Blockquote
+            { group: nGroup("QGDS / Blockquote"), name: n("QGDS / Blockquote"), properties: { basedOn: n("Paragraph"), fontStyle: "Italic", leftIndent: "6mm", fillColor: theme.primaryTextColor, spaceBefore: space(0.75), spaceAfter: space(0.5) }, exportTagMap: { exportTag: "blockquote", exportClass: "qld__blockquote" }, emitCss: true },
+            { group: nGroup("QGDS / Blockquote"), name: n("QGDS / Blockquote / Citation"), properties: sysUtils.merge({ basedOn: n("Paragraph Small"), fontStyle: "Regular", leftIndent: "6mm", fillColor: theme.secondaryHeadingColor, spaceBefore: "0mm", spaceAfter: space(0.5) }, calc(tMat.small.scale)), exportTagMap: { exportTag: "cite", exportClass: "qld__blockquote__citation" }, emitCss: true },
+            
+            // Stat Callout / Fast Facts
+            { group: nGroup("QGDS / Stat"), name: n("QGDS / Stat / Value"), properties: sysUtils.merge({ basedOn: n("Paragraph"), fontStyle: "Bold", fillColor: theme.primaryHeadingColor, spaceBefore: "0mm", spaceAfter: "0mm" }, calc(tMat.title.scale)), exportTagMap: { exportTag: "span", exportClass: "qld__stat-callout__val" }, emitCss: true },
+            { group: nGroup("QGDS / Stat"), name: n("QGDS / Stat / Label"), properties: sysUtils.merge({ basedOn: n("Paragraph Small"), fontStyle: "Medium", fillColor: theme.secondaryHeadingColor, spaceBefore: "0mm", spaceAfter: space(0.25) }, calc(tMat.small.scale)), exportTagMap: { exportTag: "p", exportClass: "qld__stat-callout__label" }, emitCss: true },
+            
+            // Details
+            { group: nGroup("QGDS / Details"), name: n("QGDS / Details / Summary"), properties: { basedOn: n("Paragraph"), fontStyle: "Bold", fillColor: theme.primaryHeadingColor, spaceBefore: space(0.5), spaceAfter: space(0.25) }, exportTagMap: { exportTag: "summary", exportClass: "qld__details__summary" }, emitCss: true },
+            { group: nGroup("QGDS / Details"), name: n("QGDS / Details / Body"), properties: { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, spaceBefore: space(0.25), spaceAfter: space(0.25) }, exportTagMap: { exportTag: "div", exportClass: "qld__details__body" }, emitCss: true },
+            
+            // Step List
+            { group: nGroup("QGDS / Step List"), name: n("QGDS / StepList"), properties: { basedOn: n("Paragraph"), fontStyle: "Medium", fillColor: theme.primaryTextColor, spaceBefore: listSpaceBefore, spaceBetweenParagraphsUsingSameStyle: listSpaceBetween }, exportTagMap: { exportTag: "li", exportClass: "qld__step-list__item" }, emitCss: true },
+            
+            // Metadata List
+            { group: nGroup("QGDS / Metadata List"), name: n("QGDS / Metadata / Term"), properties: sysUtils.merge({ basedOn: n("Paragraph Small"), fontStyle: "Bold", fillColor: theme.secondaryHeadingColor, spaceBefore: space(0.25), spaceAfter: "0mm" }, calc(tMat.small.scale)), exportTagMap: { exportTag: "dt", exportClass: "qld__metadata-list__term" }, emitCss: true },
+            { group: nGroup("QGDS / Metadata List"), name: n("QGDS / Metadata / Definition"), properties: sysUtils.merge({ basedOn: n("Paragraph Small"), fontStyle: "Regular", fillColor: theme.primaryTextColor, spaceBefore: "0mm", spaceAfter: space(0.25) }, calc(tMat.small.scale)), exportTagMap: { exportTag: "dd", exportClass: "qld__metadata-list__definition" }, emitCss: true },
+            
+            // Direction / CTA & File Download
+            { group: nGroup("QGDS / Links"), name: n("QGDS / CTA"), properties: { basedOn: n("Paragraph"), fontStyle: "Bold", underline: true, fillColor: theme.accentColor }, exportTagMap: { exportTag: "a", exportClass: "qld__cta-link" }, emitCss: true },
+            { group: nGroup("QGDS / Links"), name: n("QGDS / FileDownload"), properties: { basedOn: n("Paragraph"), fontStyle: "Medium", fillColor: theme.primaryTextColor }, exportTagMap: { exportTag: "a", exportClass: "qld__file-download" }, emitCss: true },
+            
+            // Table Elements
+            { group: nGroup("QGDS / Table"), name: n("QGDS / Table / Caption"), properties: sysUtils.merge({ basedOn: n("Figure Caption"), fontStyle: "Bold", fillColor: theme.primaryHeadingColor }, calc(tMat.caption.scale)), exportTagMap: { exportTag: "caption", exportClass: "qld__table__caption" }, emitCss: true },
+            { group: nGroup("QGDS / Table"), name: n("QGDS / Table / Note"), properties: sysUtils.merge({ basedOn: n("Notes"), fontStyle: "Light", fillColor: theme.primaryTextColor }, calc(tMat.caption.scale)), exportTagMap: { exportTag: "aside", exportClass: "qld__table__note" }, emitCss: true }
+        ];
+
+        for (var qp = 0; qp < qgdsComponents.length; qp++) styles.push(qgdsComponents[qp]);
+
         if (isReverse) {
-            for (var i = 0; i < styles.length; i++) { styles[i].group = "Reverse"; }
+            for (var i = 0; i < styles.length; i++) {
+                if (!styles[i].group) styles[i].group = "Reverse";
+            }
         }
         
         return styles;
@@ -257,13 +358,19 @@ var StyleBuilder = {
         var weight = (parseFloat(typo.baseStroke) * config.designTokens.table.borderWeightRatio) + "pt";
         var thickWeight = (parseFloat(typo.baseStroke) * config.designTokens.table.borderThickWeightRatio) + "pt";
         var styles = [
-        { name: n("Cell - Body"), properties: { appliedParagraphStyle: n("Paragraph No Spacing"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: weight, bottomEdgeStrokeColor: theme.tableBodyHorizontalBorderColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: weight, leftEdgeStrokeColor: theme.tableBodyVerticalBorderColor, rightEdgeStrokeWeight: weight, rightEdgeStrokeColor: theme.tableBodyVerticalBorderColor } },
-        { name: n("Cell - Header Solid"), properties: { appliedParagraphStyle: n("Cell - Header Text Solid"), fillColor: theme.tableHeaderBG, topInset: padV, bottomInset: padV, topEdgeStrokeWeight: typo.baseStroke, topEdgeStrokeColor: theme.tableHeaderBG, bottomEdgeStrokeWeight: 0, bottomEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } },
-        { name: n("Cell - Header Clean"), properties: { appliedParagraphStyle: n("Cell - Header Text Clean"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: thickWeight, bottomEdgeStrokeColor: theme.primaryHeadingColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } }
+            { name: n("Cell - Body"), properties: { appliedParagraphStyle: n("Paragraph No Spacing"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: weight, bottomEdgeStrokeColor: theme.tableBodyHorizontalBorderColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: weight, leftEdgeStrokeColor: theme.tableBodyVerticalBorderColor, rightEdgeStrokeWeight: weight, rightEdgeStrokeColor: theme.tableBodyVerticalBorderColor } },
+            { name: n("Cell - Header Solid"), properties: { appliedParagraphStyle: n("Cell - Header Text Solid"), fillColor: theme.tableHeaderBG, topInset: padV, bottomInset: padV, topEdgeStrokeWeight: typo.baseStroke, topEdgeStrokeColor: theme.tableHeaderBG, bottomEdgeStrokeWeight: 0, bottomEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } },
+            { name: n("Cell - Header Clean"), properties: { appliedParagraphStyle: n("Cell - Header Text Clean"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: thickWeight, bottomEdgeStrokeColor: theme.primaryHeadingColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } },
+            
+            // QGDS Table Cell Styles
+            { group: isReverse ? "Reverse / Table" : "QGDS / Table", name: n("QGDS / Table / RowHeader"), properties: { appliedParagraphStyle: n("Cell - Header Text Clean"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: thickWeight, bottomEdgeStrokeColor: theme.primaryHeadingColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } },
+            { group: isReverse ? "Reverse / Table" : "QGDS / Table", name: n("QGDS / Table / Numeric"), properties: { appliedParagraphStyle: n("Paragraph No Spacing"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: weight, bottomEdgeStrokeColor: theme.tableBodyHorizontalBorderColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } }
         ];
         
         if (isReverse) {
-            for (var i = 0; i < styles.length; i++) { styles[i].group = "Reverse"; }
+            for (var i = 0; i < styles.length; i++) {
+                if (!styles[i].group) styles[i].group = "Reverse";
+            }
         }
         return styles;
     },
@@ -282,8 +389,8 @@ var StyleBuilder = {
         };
 
         var styles = [
-        { name: n("Table - Solid Header"), properties: sysUtils.merge({ headerRegionCellStyle: n("Cell - Header Solid"), bodyRegionCellStyle: n("Cell - Body"), topBorderStrokeWeight: 0, topBorderStrokeColor: "None", bottomBorderStrokeWeight: 0, bottomBorderStrokeColor: "None", leftBorderStrokeWeight: 0, leftBorderStrokeColor: "None", rightBorderStrokeWeight: 0, rightBorderStrokeColor: "None", spaceBefore: tableSpaceBefore }, zebraProps) },
-        { name: n("Table - Clean Header"), properties: sysUtils.merge({ headerRegionCellStyle: n("Cell - Header Clean"), bodyRegionCellStyle: n("Cell - Body"), topBorderStrokeWeight: 0, topBorderStrokeColor: "None", bottomBorderStrokeWeight: 0, bottomBorderStrokeColor: "None", leftBorderStrokeWeight: 0, leftBorderStrokeColor: "None", rightBorderStrokeWeight: 0, rightBorderStrokeColor: "None", spaceBefore: tableSpaceBefore }, zebraProps) }
+            { name: n("Table - Solid Header"), properties: sysUtils.merge({ headerRegionCellStyle: n("Cell - Header Solid"), bodyRegionCellStyle: n("Cell - Body"), topBorderStrokeWeight: 0, topBorderStrokeColor: "None", bottomBorderStrokeWeight: 0, bottomBorderStrokeColor: "None", leftBorderStrokeWeight: 0, leftBorderStrokeColor: "None", rightBorderStrokeWeight: 0, rightBorderStrokeColor: "None", spaceBefore: tableSpaceBefore }, zebraProps) },
+            { name: n("Table - Clean Header"), properties: sysUtils.merge({ headerRegionCellStyle: n("Cell - Header Clean"), bodyRegionCellStyle: n("Cell - Body"), topBorderStrokeWeight: 0, topBorderStrokeColor: "None", bottomBorderStrokeWeight: 0, bottomBorderStrokeColor: "None", leftBorderStrokeWeight: 0, leftBorderStrokeColor: "None", rightBorderStrokeWeight: 0, rightBorderStrokeColor: "None", spaceBefore: tableSpaceBefore }, zebraProps) }
         ];
         
         if (isReverse) {

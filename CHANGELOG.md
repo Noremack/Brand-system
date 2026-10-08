@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.1.0] - 2026-10-08
+
+### QGDS Component Alignment & HTML Export Architecture (Phase 1 & Phase 2)
+- **Externalized Brand Design Tokens (`brand-tokens.json`):** Decoupled design tokens, color swatches, typography matrix, and page format matrices into a standalone JSON file with dynamic ES3 loader in `Config.jsx` and graceful embedded fallback.
+- **QGDS Component Paragraph Styles:** Generated official Queensland Government Design System component typography in `StyleBuilder.jsx` across Callouts, Cards, Accordions, Banners, Blockquotes, Stat Callouts, Details, Step Lists, Metadata Lists, CTA Links, File Downloads, and Table elements.
+- **QGDS Character, Object, and Cell Styles:** Added Tag Badges (Default, Success, Warning, Error, Info, Neutral), Callout & Card & Banner object styles, and Table RowHeader & Numeric cell styles.
+- **Semantic HTML/EPUB Export Tag Mappings:** Configured native InDesign `styleExportTagMaps` (`exportType: "EPUB"`, `exportTag`, `exportClass`) and `emitCss: true` across all paragraph and character styles to seamlessly integrate with `InDesign HTML exporter` and SWE BEM/Web Component emitters.
+- **Hierarchical Style Groups:** Implemented `resolveTargetGroup` in `Engine.jsx` supporting arbitrary slash-delimited nested style folders (e.g. `QGDS / Callout`, `QGDS / Card`, `Reverse / QGDS / Banner`).
+- **Telemetry & Test Infrastructure:** Ignored 3.1 MB runtime log, added automated test suites in `tests/test-brand-system.js` verifying tokens, math, style generation, and nested group DOM injection, and achieved 100% ExtendScript ES3 scanner compliance.
+
 ## [Unreleased] - 2026-05-11
 
 ### Architecture & Refactoring

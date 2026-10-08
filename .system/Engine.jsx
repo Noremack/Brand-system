@@ -469,6 +469,93 @@ var BrandSystem = (function() {
     
     // STRUCTURAL FIX: createStyles mapped to Lazy-Loader Cache
     /**
+     * Resolves a nested style group path (e.g., "QGDS / Callout", "Reverse / QGDS / Card")
+     * creating intermediate parent style groups in the hierarchy as needed.
+     * @param {Object} rootGroupCollection - The document's top-level style group collection.
+     * @param {String} groupPath - Slash-delimited path of the style group.
+     * @param {String} childGroupName - Property name for child groups (e.g., "paragraphStyleGroups").
+     * @returns {Object|null} The deepest resolved StyleGroup object.
+     */
+    function resolveTargetGroup(rootGroupCollection, groupPath, childGroupName) {
+        if (!groupPath || !rootGroupCollection) return null;
+        var parts = groupPath.split(/\s*[\/\\]\s*/);
+        var currentColl = rootGroupCollection;
+        var currentGrp = null;
+        for (var p = 0; p < parts.length; p++) {
+            var partName = parts[p];
+            if (!partName) continue;
+            currentGrp = currentColl.itemByName(partName);
+            if (!currentGrp || !currentGrp.isValid) {
+                currentGrp = currentColl.add({ name: partName });
+            }
+            if (p < parts.length - 1) {
+                if (currentGrp[childGroupName]) {
+                    currentColl = currentGrp[childGroupName];
+                } else {
+                    break;
+                }
+            }
+        }
+        return currentGrp;
+    }
+
+    /**
+     * Applies HTML/EPUB export tag mappings and CSS emission settings to paragraph and character styles.
+     * Integrates with InDesign's native StyleExportTagMaps DOM collection.
+     * @param {Object} style - The InDesign ParagraphStyle or CharacterStyle.
+     * @param {Object|Array} exportTagDef - The tag map object or array of objects.
+     * @param {Boolean} [emitCss] - Whether to emit CSS declarations for this style.
+     */
+    function applyExportTagMaps(style, exportTagDef, emitCss) {
+        if (!style || !style.isValid) return;
+        if (emitCss !== undefined) {
+            try { style.emitCss = !!emitCss; } catch (_) {}
+        }
+        if (!exportTagDef || !style.styleExportTagMaps) return;
+
+        var maps = (exportTagDef instanceof Array) ? exportTagDef : [exportTagDef];
+        try {
+            var tagMaps = style.styleExportTagMaps;
+            for (var m = 0; m < maps.length; m++) {
+                var mapItem = maps[m];
+                if (!mapItem || !mapItem.exportTag) continue;
+                var eType = mapItem.exportType || "EPUB";
+                var eTag = mapItem.exportTag;
+                var eClass = mapItem.exportClass || "";
+                var eAttr = mapItem.exportAttributes || "";
+
+                var found = false;
+                var tLen = (typeof tagMaps.length === "number") ? tagMaps.length : 0;
+                for (var t = 0; t < tLen; t++) {
+                    var tm = tagMaps[t] || (typeof tagMaps.item === "function" ? tagMaps.item(t) : null);
+                    if (tm && (tm.exportType === eType || tm.exportType === "HTML")) {
+                        tm.exportTag = eTag;
+                        tm.exportClass = eClass;
+                        if (eAttr !== undefined) tm.exportAttributes = eAttr;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    var mapProps = {
+                        exportType: eType,
+                        exportTag: eTag,
+                        exportClass: eClass,
+                        exportAttributes: eAttr
+                    };
+                    if (typeof tagMaps.add === "function") {
+                        tagMaps.add(mapProps);
+                    } else if (typeof tagMaps.push === "function") {
+                        tagMaps.push(mapProps);
+                    }
+                }
+            }
+        } catch (err) {
+            Logger.warn("Failed to apply export tag map to '" + style.name + "': " + err.message);
+        }
+    }
+
+    /**
      * Core DOM injector for all styles. Relies on CacheManager to prevent memory leaks 
      * and massive performance slowdowns caused by repeatedly querying `doc.paragraphStyles`.
      * Automatically garbage collects every 50 loops to prevent ExtendScript memory crashes.
@@ -480,13 +567,13 @@ var BrandSystem = (function() {
      * @param {Object} layoutMetrics - Active layout constraints (for TOC tab positioning).
      */
     function createStyles(doc, styleType, definitions, layoutMetrics) {
-        var baseCollection, groupCollection, childName;
+        var baseCollection, groupCollection, childName, childGroupName;
         
-        if (styleType === "paragraph") { baseCollection = doc.paragraphStyles; groupCollection = doc.paragraphStyleGroups; childName = "paragraphStyles"; } 
-        else if (styleType === "character") { baseCollection = doc.characterStyles; groupCollection = doc.characterStyleGroups; childName = "characterStyles"; } 
-        else if (styleType === "object") { baseCollection = doc.objectStyles; groupCollection = doc.objectStyleGroups; childName = "objectStyles"; } 
-        else if (styleType === "table") { baseCollection = doc.tableStyles; groupCollection = doc.tableStyleGroups; childName = "tableStyles"; } 
-        else if (styleType === "cell") { baseCollection = doc.cellStyles; groupCollection = doc.cellStyleGroups; childName = "cellStyles"; } 
+        if (styleType === "paragraph") { baseCollection = doc.paragraphStyles; groupCollection = doc.paragraphStyleGroups; childName = "paragraphStyles"; childGroupName = "paragraphStyleGroups"; } 
+        else if (styleType === "character") { baseCollection = doc.characterStyles; groupCollection = doc.characterStyleGroups; childName = "characterStyles"; childGroupName = "characterStyleGroups"; } 
+        else if (styleType === "object") { baseCollection = doc.objectStyles; groupCollection = doc.objectStyleGroups; childName = "objectStyles"; childGroupName = "objectStyleGroups"; } 
+        else if (styleType === "table") { baseCollection = doc.tableStyles; groupCollection = doc.tableStyleGroups; childName = "tableStyles"; childGroupName = "tableStyleGroups"; } 
+        else if (styleType === "cell") { baseCollection = doc.cellStyles; groupCollection = doc.cellStyleGroups; childName = "cellStyles"; childGroupName = "cellStyleGroups"; } 
         else return;
 
         var tocTabPosition = layoutMetrics ? (doc.documentPreferences.pageWidth - layoutMetrics.margin) + "mm" : "180mm";
@@ -498,9 +585,10 @@ var BrandSystem = (function() {
             var def = definitions[i]; var targetCollection = baseCollection;
 
             if (def.group) {
-                var grp = groupCollection.itemByName(def.group);
-                if (!grp.isValid) grp = groupCollection.add({ name: def.group });
-                targetCollection = grp[childName];
+                var grp = resolveTargetGroup(groupCollection, def.group, childGroupName);
+                if (grp && grp.isValid) {
+                    targetCollection = grp[childName];
+                }
             }
 
             var style = targetCollection.itemByName(def.name);
@@ -513,13 +601,20 @@ var BrandSystem = (function() {
             else if (styleType === "character") CacheManager.cStyles[def.name] = style;
             else if (styleType === "cell") CacheManager.cellStyles[def.name] = style;
             
-            if (def.name.indexOf("TOC") === 0 && def.properties.tabList) def.properties.tabList[0].position = tocTabPosition;
+            if (def.name.indexOf("TOC") === 0 && def.properties && def.properties.tabList) def.properties.tabList[0].position = tocTabPosition;
             
-            resolveStyleProperties(doc, styleType, def.properties);
-            try {
-                style.properties = def.properties;
-            } catch (err) {
-                Logger.warn("Failed to apply properties to " + styleType + " style '" + def.name + "': " + err.message);
+            if (def.properties) {
+                resolveStyleProperties(doc, styleType, def.properties);
+                try {
+                    style.properties = def.properties;
+                } catch (err) {
+                    Logger.warn("Failed to apply properties to " + styleType + " style '" + def.name + "': " + err.message);
+                }
+            }
+            
+            // Apply HTML/EPUB semantic export tag maps and CSS emission
+            if (def.exportTagMap || def.emitCss !== undefined) {
+                applyExportTagMaps(style, def.exportTagMap, def.emitCss);
             }
             
             if (styleType === "paragraph" && def.grepStyles) {
@@ -621,5 +716,5 @@ var BrandSystem = (function() {
         }
     }
 
-    return { analyze: analyzeDocumentMetrics, process: processDocument, generateTemplate: generateTemplate, config: config, Logger: Logger };
+    return { analyze: analyzeDocumentMetrics, process: processDocument, generateTemplate: generateTemplate, createStyles: createStyles, buildTypographyEngine: buildTypographyEngine, config: config, Logger: Logger };
 })();
