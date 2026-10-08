@@ -27,7 +27,7 @@ To bypass the notorious performance bottlenecks of the InDesign DOM, this framew
 
 ## 🔧 Maintenance & Customization
 
-The system is highly modular. Most visual changes can be made by editing `brand-tokens.json` (or `modules/01-config.jsxinc`) without touching the core engine.
+The system is 100% token-driven and modular. All visual attributes, typography, colors, page formats, and style definitions are declared in `brand-tokens.json` as the single source of truth without duplicate hardcoded fallbacks in source code.
 
 **1. How to change Table Border Weights:**
 Open `brand-tokens.json`, locate `designTokens.table`, and adjust `borderWeightRatio` or `borderThickWeightRatio`.
@@ -46,14 +46,14 @@ Because the engine uses a Hybrid Architecture, any changes made to `brand-tokens
 * **`Extract Config Information.jsx`** - Utility script. Reverse-engineers visually styled objects/text and outputs them as properly formatted mathematical scaling algorithms and JSON objects.
 * **`Export Custom Document.jsx`** - Packaging script. Processes bespoke InDesign layouts and routes them through the batch generation pipeline (PDFs, JPGs, INDTs) without destroying the active file.
 * **`Uninstall Brand System.jsx`** - Nuclear utility. Completely wipes all Brand styles, swatches, and master pages from an active document, leaving only raw unformatted text.
-* **`brand-tokens.json`** - **The Brain.** Decoupled design tokens, color swatches, typography scales, and format definitions.
+* **`brand-tokens.json`** - **The Brain & Single Source of Truth.** Decoupled design tokens, color swatches, typography scales, format definitions, and declarative style schemas.
 * **`module-verification.json`** - Cryptographic SHA-256 integrity manifest for all 11 modules.
 * **`modules/`** - Numbered single-responsibility ExtendScript modules:
-  * `01-config.jsxinc`: Configuration constants, matrices, and fallback tokens.
+  * `01-config.jsxinc`: Pure runtime calibration constants and containers (zero hardcoded token duplicates).
   * `02-utilities.jsxinc`: Dimension math, typography scaling, ES3 polyfills, and telemetry Logger.
-  * `03-token-loader.jsxinc`: Multi-tier token resolution and JSON parser.
+  * `03-token-loader.jsxinc`: Multi-tier token resolution and hydration (external JSON or standalone bundle embedded payload).
   * `04-cache-manager.jsxinc`: In-memory style and swatch cache.
-  * `05-style-builder.jsxinc`: Declarative QGDS component styles with native `styleExportTagMaps`.
+  * `05-style-builder.jsxinc`: Token-driven compiler generating native styles and QGDS `styleExportTagMaps` directly from `brand-tokens.json`.
   * `06-layout-engine.jsxinc`: Page geometry, margins, layer stratification, and master pages.
   * `07-asset-injector.jsxinc`: Header/footer vector placement and specimen injection.
   * `08-cleanup-protocol.jsxinc`: Document sanitization and brand reset routines.

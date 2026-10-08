@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.4.0] - 2026-10-08
+
+### Token-Driven Architecture & Standalone Portability
+- **Elimination of Hardcoded Fallbacks (`01-config.jsxinc`):** Stripped all duplicate token arrays (`pageMatrix`, `colors`, `gradients`, `typographyMatrix`, `designTokens`, `specimenStyles`, `layerMatrix`, `assetTokens`) from source JavaScript. `01-config.jsxinc` now acts strictly as a lightweight runtime configuration container.
+- **Declarative Style Definitions (`brand-tokens.json`):** Extended `brand-tokens.json` with a dedicated `"styles"` section covering declarative schemas for character styles, paragraph styles, multi-level list styles, compound object containers (callouts, cards, banners, insets, columns), cell styles, and table styles. `brand-tokens.json` is now the single source of truth for the entire ecosystem.
+- **Dynamic Token-Driven Style Compiler (`05-style-builder.jsxinc`):** Refactored `StyleBuilder` to dynamically iterate over and compile declarative style definitions directly from `config.styles`, resolving colors, fonts, math scaling, and QGDS export tag maps on the fly with 100% bit-for-bit parity across standard and reverse themes.
+- **Standalone Distribution Portability (`tools/assemble.js`):** Updated build assembly to embed `brand-tokens.json` directly into the distribution bundle header (`__EMBEDDED_BRAND_TOKENS__`). `03-token-loader.jsxinc` automatically hydrates from this payload in single-file deployments while prioritizing local disk files when present, achieving full single-file portability with zero source code duplication.
+- **Unit Test Suite Verification:** Updated `tests/test-brand-system.js` to assert `tokens.styles` validation, clean `unloaded` state in absence of tokens, and seamless hydration via `__EMBEDDED_BRAND_TOKENS__`. 100% of tests (146/146) passing.
+
 ## [2.3.0] - 2026-10-08
 
 ### Build Verification, Checksum Auditing & Template Cache Invalidation (Phase 4, Phase 5 & Phase 6)

@@ -1229,5 +1229,1178 @@
         }
       ]
     }
-  ]
+  ],
+  "styles": {
+    "character": [
+      {
+        "name": "Bold",
+        "properties": {
+          "fontStyle": "Bold"
+        },
+        "exportTagMap": {
+          "exportTag": "strong",
+          "exportClass": "qld__bold"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Italic",
+        "properties": {
+          "fontStyle": "Italic"
+        },
+        "exportTagMap": {
+          "exportTag": "em",
+          "exportClass": "qld__italic"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Accent",
+        "roleColor": "accentColor",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__accent-text"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Accent Semibold",
+        "properties": {
+          "fontStyle": "SemiBold"
+        },
+        "roleColor": "accentColor",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__accent-text--semibold"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Underline 1pt line",
+        "properties": {
+          "underline": true
+        },
+        "underlineStroke": "full",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__underline"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Underline .5 line",
+        "properties": {
+          "underline": true
+        },
+        "underlineStroke": "half",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__underline--thin"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Underline 1pt japanese dots",
+        "properties": {
+          "underline": true,
+          "underlineType": "Japanese Dots"
+        },
+        "underlineStroke": "full",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__underline--dotted"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Offset Custom Icon",
+        "baselineShiftType": "standard",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__icon"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Offset Custom Icon Small",
+        "baselineShiftType": "small",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__icon--small"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Tag",
+        "name": "QGDS / Tag - Default",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__tag"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Tag",
+        "name": "QGDS / Tag - Success",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__tag qld__tag--success"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Tag",
+        "name": "QGDS / Tag - Warning",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__tag qld__tag--warning"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Tag",
+        "name": "QGDS / Tag - Error",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__tag qld__tag--error"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Tag",
+        "name": "QGDS / Tag - Info",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__tag qld__tag--info"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Tag",
+        "name": "QGDS / Tag - Neutral",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__tag qld__tag--neutral"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Links",
+        "name": "QGDS / CTA",
+        "properties": {
+          "fontStyle": "Bold",
+          "underline": true
+        },
+        "roleColor": "accentColor",
+        "exportTagMap": {
+          "exportTag": "a",
+          "exportClass": "qld__cta-link"
+        },
+        "emitCss": true
+      }
+    ],
+    "paragraph": [
+      {
+        "name": "Paragraph",
+        "isBase": true,
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Light",
+          "hyphenation": false
+        },
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__body-text"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Paragraph No Spacing",
+        "basedOn": "Paragraph",
+        "properties": {
+          "spaceBefore": "0mm",
+          "spaceAfter": "0mm"
+        },
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__body-text"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Paragraph Small",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "scaleToken": "small",
+        "exportTagMap": {
+          "exportTag": "small",
+          "exportClass": "qld__caption-text"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Paragraph Small No Spacing",
+        "basedOn": "Paragraph Small",
+        "properties": {
+          "spaceBefore": "0mm",
+          "spaceAfter": "0mm"
+        },
+        "exportTagMap": {
+          "exportTag": "small",
+          "exportClass": "qld__caption-text"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "List Custom Icon",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "isCustomIconList": true,
+        "grepStyles": [
+          {
+            "charStyle": "Offset Custom Icon",
+            "expr": "~a\\t~i"
+          },
+          {
+            "charStyle": "Offset Custom Icon",
+            "expr": "~a\\t"
+          }
+        ],
+        "exportTagMap": {
+          "exportTag": "li",
+          "exportClass": "qld__list-item"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "List Custom Icon Small",
+        "basedOn": "Paragraph Small",
+        "roleColor": "primaryTextColor",
+        "isCustomIconListSmall": true,
+        "grepStyles": [
+          {
+            "charStyle": "Offset Custom Icon Small",
+            "expr": "~a\\t~i"
+          },
+          {
+            "charStyle": "Offset Custom Icon Small",
+            "expr": "~a\\t"
+          }
+        ],
+        "exportTagMap": {
+          "exportTag": "li",
+          "exportClass": "qld__list-item"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Introduction Paragraph",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Regular"
+        },
+        "scaleToken": "intro",
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__abstract"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Title",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Black",
+          "keepWithNext": 1
+        },
+        "scaleToken": "title",
+        "exportTagMap": {
+          "exportTag": "h1",
+          "exportClass": "qld__title"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Subtitle",
+        "basedOn": "Title",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Regular"
+        },
+        "scaleToken": "subtitle",
+        "spaceToken": "subtitle",
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__subtitle"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Heading 1",
+        "basedOn": "Title",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold"
+        },
+        "scaleToken": "heading1",
+        "spaceToken": "heading1",
+        "exportTagMap": {
+          "exportTag": "h1",
+          "exportClass": "qld__heading--1"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Heading 2",
+        "basedOn": "Heading 1",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "scaleToken": "heading2",
+        "spaceToken": "heading2",
+        "exportTagMap": {
+          "exportTag": "h2",
+          "exportClass": "qld__heading--2"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Heading 3",
+        "basedOn": "Heading 2",
+        "roleColor": "secondaryHeadingColor",
+        "scaleToken": "heading3",
+        "exportTagMap": {
+          "exportTag": "h3",
+          "exportClass": "qld__heading--3"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Heading 4",
+        "basedOn": "Heading 3",
+        "roleColor": "secondaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold"
+        },
+        "scaleToken": "heading4",
+        "spaceToken": "heading4",
+        "exportTagMap": {
+          "exportTag": "h4",
+          "exportClass": "qld__heading--4"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Figure Caption",
+        "basedOn": "Paragraph",
+        "roleColor": "secondaryHeadingColor",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "scaleToken": "caption",
+        "exportTagMap": {
+          "exportTag": "figcaption",
+          "exportClass": "qld__figure__caption"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Caption",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Regular"
+        },
+        "scaleToken": "caption",
+        "exportTagMap": {
+          "exportTag": "figcaption",
+          "exportClass": "qld__caption"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Notes",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Light"
+        },
+        "scaleToken": "caption",
+        "exportTagMap": {
+          "exportTag": "aside",
+          "exportClass": "qld__note"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Footer",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Regular"
+        },
+        "scaleToken": "footer",
+        "exportTagMap": {
+          "exportTag": "footer",
+          "exportClass": "qld__footer"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "TOC 1",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Medium",
+          "tabAlignRight": true
+        },
+        "scaleToken": "toc1",
+        "exportTagMap": {
+          "exportTag": "nav",
+          "exportClass": "qld__in-page-nav__link"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "TOC 2",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Regular",
+          "tabAlignRight": true
+        },
+        "scaleToken": "toc2",
+        "exportTagMap": {
+          "exportTag": "nav",
+          "exportClass": "qld__in-page-nav__link"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "TOC 3",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Light",
+          "tabAlignRight": true
+        },
+        "scaleToken": "toc3",
+        "exportTagMap": {
+          "exportTag": "nav",
+          "exportClass": "qld__in-page-nav__link"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Cell - Header Text Solid",
+        "basedOn": "Paragraph",
+        "roleColor": "tableHeaderText",
+        "properties": {
+          "fontStyle": "Bold",
+          "spaceBefore": 0,
+          "spaceAfter": 0
+        },
+        "explicitBaseFont": true,
+        "exportTagMap": {
+          "exportTag": "th",
+          "exportClass": "qld__table__header"
+        },
+        "emitCss": true
+      },
+      {
+        "name": "Cell - Header Text Clean",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold",
+          "spaceBefore": 0,
+          "spaceAfter": 0
+        },
+        "explicitBaseFont": true,
+        "exportTagMap": {
+          "exportTag": "th",
+          "exportClass": "qld__table__header"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Callout",
+        "name": "QGDS / Callout / Heading",
+        "basedOn": "Heading 4",
+        "roleColor": "secondaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold"
+        },
+        "scaleToken": "heading4",
+        "spaceRatio": 0.5,
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "h4",
+          "exportClass": "qld__callout__heading"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Callout",
+        "name": "QGDS / Callout / Body",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "spaceRatio": 0.25,
+        "properties": {
+          "spaceAfter": "0mm"
+        },
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__callout__body"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Card",
+        "name": "QGDS / Card / Title",
+        "basedOn": "Heading 3",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold",
+          "spaceBefore": "0mm"
+        },
+        "scaleToken": "heading3",
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "h3",
+          "exportClass": "qld__card__title"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Card",
+        "name": "QGDS / Card / Body",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "spaceRatio": 0.25,
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__card__body"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Card",
+        "name": "QGDS / Card / Action",
+        "basedOn": "Paragraph Small",
+        "roleColor": "accentColor",
+        "properties": {
+          "fontStyle": "SemiBold"
+        },
+        "scaleToken": "small",
+        "spaceRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "a",
+          "exportClass": "qld__card__action"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Accordion",
+        "name": "QGDS / Accordion / Header",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold"
+        },
+        "spaceRatio": 0.5,
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "details",
+          "exportClass": "qld__accordion__title"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Accordion",
+        "name": "QGDS / Accordion / Body",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "spaceRatio": 0.25,
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "div",
+          "exportClass": "qld__accordion__body"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Banner",
+        "name": "QGDS / Banner / Title",
+        "basedOn": "Title",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Black"
+        },
+        "scaleToken": "title",
+        "exportTagMap": {
+          "exportTag": "h1",
+          "exportClass": "qld__banner__title"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Banner",
+        "name": "QGDS / Banner / Abstract",
+        "basedOn": "Introduction Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Regular"
+        },
+        "scaleToken": "intro",
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__banner__abstract"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Blockquote",
+        "name": "QGDS / Blockquote",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Italic",
+          "leftIndent": "6mm"
+        },
+        "spaceRatio": 0.75,
+        "spaceAfterRatio": 0.5,
+        "exportTagMap": {
+          "exportTag": "blockquote",
+          "exportClass": "qld__blockquote"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Blockquote",
+        "name": "QGDS / Blockquote / Citation",
+        "basedOn": "Paragraph Small",
+        "roleColor": "secondaryHeadingColor",
+        "properties": {
+          "fontStyle": "Regular",
+          "leftIndent": "6mm",
+          "spaceBefore": "0mm"
+        },
+        "scaleToken": "small",
+        "spaceAfterRatio": 0.5,
+        "exportTagMap": {
+          "exportTag": "cite",
+          "exportClass": "qld__blockquote__citation"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Stat",
+        "name": "QGDS / Stat / Value",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold",
+          "spaceBefore": "0mm",
+          "spaceAfter": "0mm"
+        },
+        "scaleToken": "title",
+        "exportTagMap": {
+          "exportTag": "span",
+          "exportClass": "qld__stat-callout__val"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Stat",
+        "name": "QGDS / Stat / Label",
+        "basedOn": "Paragraph Small",
+        "roleColor": "secondaryHeadingColor",
+        "properties": {
+          "fontStyle": "Medium",
+          "spaceBefore": "0mm"
+        },
+        "scaleToken": "small",
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "p",
+          "exportClass": "qld__stat-callout__label"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Details",
+        "name": "QGDS / Details / Summary",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold"
+        },
+        "spaceRatio": 0.5,
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "summary",
+          "exportClass": "qld__details__summary"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Details",
+        "name": "QGDS / Details / Body",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "spaceRatio": 0.25,
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "div",
+          "exportClass": "qld__details__body"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Step List",
+        "name": "QGDS / StepList",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "isListSpacing": true,
+        "exportTagMap": {
+          "exportTag": "li",
+          "exportClass": "qld__step-list__item"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Metadata List",
+        "name": "QGDS / Metadata / Term",
+        "basedOn": "Paragraph Small",
+        "roleColor": "secondaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold",
+          "spaceAfter": "0mm"
+        },
+        "scaleToken": "small",
+        "spaceRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "dt",
+          "exportClass": "qld__metadata-list__term"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Metadata List",
+        "name": "QGDS / Metadata / Definition",
+        "basedOn": "Paragraph Small",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Regular",
+          "spaceBefore": "0mm"
+        },
+        "scaleToken": "small",
+        "spaceAfterRatio": 0.25,
+        "exportTagMap": {
+          "exportTag": "dd",
+          "exportClass": "qld__metadata-list__definition"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Links",
+        "name": "QGDS / CTA",
+        "basedOn": "Paragraph",
+        "roleColor": "accentColor",
+        "properties": {
+          "fontStyle": "Bold",
+          "underline": true
+        },
+        "exportTagMap": {
+          "exportTag": "a",
+          "exportClass": "qld__cta-link"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Links",
+        "name": "QGDS / FileDownload",
+        "basedOn": "Paragraph",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Medium"
+        },
+        "exportTagMap": {
+          "exportTag": "a",
+          "exportClass": "qld__file-download"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Table",
+        "name": "QGDS / Table / Caption",
+        "basedOn": "Figure Caption",
+        "roleColor": "primaryHeadingColor",
+        "properties": {
+          "fontStyle": "Bold"
+        },
+        "scaleToken": "caption",
+        "exportTagMap": {
+          "exportTag": "caption",
+          "exportClass": "qld__table__caption"
+        },
+        "emitCss": true
+      },
+      {
+        "group": "QGDS / Table",
+        "name": "QGDS / Table / Note",
+        "basedOn": "Notes",
+        "roleColor": "primaryTextColor",
+        "properties": {
+          "fontStyle": "Light"
+        },
+        "scaleToken": "caption",
+        "exportTagMap": {
+          "exportTag": "aside",
+          "exportClass": "qld__table__note"
+        },
+        "emitCss": true
+      }
+    ],
+    "lists": [
+      {
+        "name": "List Bullet",
+        "type": "bullet",
+        "maxLevel": 3,
+        "tag": "li",
+        "class": "qld__list-item"
+      },
+      {
+        "name": "List Number",
+        "type": "numbered",
+        "maxLevel": 3,
+        "tag": "li",
+        "class": "qld__ordered-list-item",
+        "numberingList": "Scripted Numbered List",
+        "numberingFormat": "^#.^t"
+      }
+    ],
+    "object": {
+      "base": {
+        "name": "Frame - Basic",
+        "fillColor": "frameFillColor",
+        "strokeColor": "accentColor",
+        "enableStroke": true
+      },
+      "permutations": [
+        {
+          "suffix": "Top Left",
+          "tl": true,
+          "tr": false,
+          "bl": false,
+          "br": false
+        },
+        {
+          "suffix": "Top Right",
+          "tl": false,
+          "tr": true,
+          "bl": false,
+          "br": false
+        },
+        {
+          "suffix": "Bottom Left",
+          "tl": false,
+          "tr": false,
+          "bl": true,
+          "br": false
+        },
+        {
+          "suffix": "Bottom Right",
+          "tl": false,
+          "tr": false,
+          "bl": false,
+          "br": true
+        },
+        {
+          "suffix": "Top",
+          "tl": true,
+          "tr": true,
+          "bl": false,
+          "br": false
+        },
+        {
+          "suffix": "Bottom",
+          "tl": false,
+          "tr": false,
+          "bl": true,
+          "br": true
+        },
+        {
+          "suffix": "Left",
+          "tl": true,
+          "tr": false,
+          "bl": true,
+          "br": false
+        },
+        {
+          "suffix": "Right",
+          "tl": false,
+          "tr": true,
+          "bl": false,
+          "br": true
+        },
+        {
+          "suffix": "All Corners",
+          "tl": true,
+          "tr": true,
+          "bl": true,
+          "br": true
+        }
+      ],
+      "insets": [
+        {
+          "name": "Inset - X-Small",
+          "t": 0.5,
+          "b": 0.5,
+          "l": 0.5,
+          "r": 0.5
+        },
+        {
+          "name": "Inset - Small",
+          "t": 1,
+          "b": 1,
+          "l": 1,
+          "r": 1
+        },
+        {
+          "name": "Inset - Medium",
+          "t": 1.5,
+          "b": 1.5,
+          "l": 1.5,
+          "r": 1.5
+        },
+        {
+          "name": "Inset - Large",
+          "t": 2,
+          "b": 2,
+          "l": 2,
+          "r": 2
+        },
+        {
+          "name": "Inset - Large (Vertical Only)",
+          "t": 2,
+          "b": 2,
+          "l": 0,
+          "r": 0
+        },
+        {
+          "name": "Inset - Large (Flush Left)",
+          "t": 2,
+          "b": 2,
+          "l": 0,
+          "r": 2
+        },
+        {
+          "name": "Inset - Large (Flush Right)",
+          "t": 2,
+          "b": 2,
+          "l": 2,
+          "r": 0
+        },
+        {
+          "name": "Inset - Large (Reduced Left)",
+          "t": 2,
+          "b": 2,
+          "l": 1,
+          "r": 2
+        },
+        {
+          "name": "Inset - Large (Vertical Reduced Bottom)",
+          "t": 2,
+          "b": 1.5,
+          "l": 0,
+          "r": 0
+        },
+        {
+          "name": "Inset - X-Small (Flush Right)",
+          "t": 0.5,
+          "b": 0.5,
+          "l": 0.5,
+          "r": 0
+        },
+        {
+          "name": "Inset - X-Small (Bottom Left)",
+          "t": 0,
+          "b": 0.5,
+          "l": 0.5,
+          "r": 0
+        },
+        {
+          "name": "Inset - X-Small (Left Only)",
+          "t": 0,
+          "b": 0,
+          "l": 0.5,
+          "r": 0
+        }
+      ],
+      "columns": [
+        {
+          "name": "Columns - X-Small",
+          "cols": 2,
+          "gutter": 4
+        },
+        {
+          "name": "Columns - Small",
+          "cols": 2,
+          "gutter": 6
+        },
+        {
+          "name": "Columns - Medium",
+          "cols": 2,
+          "gutter": 12
+        }
+      ],
+      "qgdsCallouts": [
+        {
+          "name": "QGDS / Callout - Informative",
+          "group": "QGDS / Callout",
+          "fill": "frameFillColor",
+          "stroke": "accentColor",
+          "radius": "small"
+        },
+        {
+          "name": "QGDS / Callout - Warning",
+          "group": "QGDS / Callout",
+          "fill": "Neutral - Extra Light",
+          "stroke": "accentColor",
+          "radius": "small"
+        },
+        {
+          "name": "QGDS / Callout - Error",
+          "group": "QGDS / Callout",
+          "fill": "Neutral - Extra Light",
+          "stroke": "themeExtraDarkColor",
+          "radius": "small"
+        },
+        {
+          "name": "QGDS / Callout - Success",
+          "group": "QGDS / Callout",
+          "fill": "themeWhiteColor",
+          "stroke": "accentColor",
+          "radius": "small"
+        },
+        {
+          "name": "QGDS / Callout - Accent",
+          "group": "QGDS / Callout",
+          "fill": "frameFillColor",
+          "stroke": "accentColor",
+          "radius": "small"
+        }
+      ],
+      "qgdsCards": [
+        {
+          "name": "QGDS / Card - Default",
+          "group": "QGDS / Card",
+          "fill": "Paper",
+          "stroke": "subtleStrokeColor",
+          "radius": "medium"
+        },
+        {
+          "name": "QGDS / Card - Feature",
+          "group": "QGDS / Card",
+          "fill": "frameFillColor",
+          "stroke": "accentColor",
+          "radius": "medium"
+        },
+        {
+          "name": "QGDS / Card - Compact",
+          "group": "QGDS / Card",
+          "fill": "Paper",
+          "stroke": "subtleStrokeColor",
+          "radius": "small"
+        },
+        {
+          "name": "QGDS / Card - Action",
+          "group": "QGDS / Card",
+          "fill": "Paper",
+          "stroke": "accentColor",
+          "radius": "medium"
+        }
+      ],
+      "qgdsBanners": [
+        {
+          "name": "QGDS / Banner - Light",
+          "group": "QGDS / Banner",
+          "fill": "themeWhiteColor"
+        },
+        {
+          "name": "QGDS / Banner - Dark",
+          "group": "QGDS / Banner",
+          "fill": "themeExtraDarkColor"
+        },
+        {
+          "name": "QGDS / Banner - Default",
+          "group": "QGDS / Banner",
+          "fill": "themeMediumColor"
+        }
+      ]
+    },
+    "cell": [
+      {
+        "name": "Cell - Body",
+        "role": "body"
+      },
+      {
+        "name": "Cell - Header Solid",
+        "role": "header-solid"
+      },
+      {
+        "name": "Cell - Header Clean",
+        "role": "header-clean"
+      },
+      {
+        "group": "QGDS / Table",
+        "name": "QGDS / Table / RowHeader",
+        "role": "row-header"
+      },
+      {
+        "group": "QGDS / Table",
+        "name": "QGDS / Table / Numeric",
+        "role": "numeric"
+      }
+    ],
+    "table": [
+      {
+        "name": "Table - Solid Header",
+        "headerRegionCell": "Cell - Header Solid",
+        "bodyRegionCell": "Cell - Body"
+      },
+      {
+        "name": "Table - Clean Header",
+        "headerRegionCell": "Cell - Header Clean",
+        "bodyRegionCell": "Cell - Body"
+      }
+    ]
+  }
 }

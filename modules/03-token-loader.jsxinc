@@ -86,48 +86,48 @@ function resolveUiColor(colorName) {
 
 /**
  * Reads and applies tokens from brand-tokens.json into the global config object.
- * Falls back to embedded defaults if the file cannot be found or read.
+ * In standalone bundle mode, falls back to build-time __EMBEDDED_BRAND_TOKENS__.
  * @param {Document} [doc] - Optional active document reference
- * @returns {Boolean} True if loaded from external file, false if using embedded defaults
+ * @returns {Boolean} True if loaded from external file or embedded tokens, false if unloaded
  */
 function loadBrandTokens(doc) {
     var tokensFile = findBrandTokensFile(doc);
-    if (!tokensFile || !tokensFile.exists) {
-        config.source = "embedded-defaults";
-        return false;
-    }
-
-    var content = "";
-    try {
-        tokensFile.open("r");
-        content = tokensFile.read();
-        tokensFile.close();
-    } catch (err) {
-        if (typeof Logger !== "undefined") Logger.warn("Failed to read brand-tokens.json: " + err.message);
-        config.source = "embedded-defaults";
-        return false;
-    }
-
-    if (!content) {
-        config.source = "embedded-defaults";
-        return false;
-    }
-
     var json = null;
-    try {
-        if (typeof JSON !== "undefined" && JSON.parse) {
-            json = JSON.parse(content);
-        } else {
-            json = eval("(" + content + ")");
+    var sourceName = "unloaded";
+
+    if (tokensFile && tokensFile.exists) {
+        var content = "";
+        try {
+            tokensFile.open("r");
+            content = tokensFile.read();
+            tokensFile.close();
+        } catch (err) {
+            if (typeof Logger !== "undefined") Logger.warn("Failed to read brand-tokens.json: " + err.message);
         }
-    } catch (parseErr) {
-        if (typeof Logger !== "undefined") Logger.warn("Failed to parse brand-tokens.json: " + parseErr.message);
-        config.source = "embedded-defaults";
-        return false;
+
+        if (content) {
+            try {
+                if (typeof JSON !== "undefined" && JSON.parse) {
+                    json = JSON.parse(content);
+                } else {
+                    json = eval("(" + content + ")");
+                }
+                sourceName = tokensFile.fsName;
+            } catch (parseErr) {
+                if (typeof Logger !== "undefined") Logger.warn("Failed to parse brand-tokens.json: " + parseErr.message);
+                json = null;
+            }
+        }
+    }
+
+    // Fall back to standalone bundle embedded payload if external file was not resolved
+    if (!json && typeof __EMBEDDED_BRAND_TOKENS__ !== "undefined" && __EMBEDDED_BRAND_TOKENS__) {
+        json = __EMBEDDED_BRAND_TOKENS__;
+        sourceName = "embedded-tokens";
     }
 
     if (!json || typeof json !== "object") {
-        config.source = "embedded-defaults";
+        config.source = "unloaded";
         return false;
     }
 
@@ -162,6 +162,9 @@ function loadBrandTokens(doc) {
     if (json.gradients && json.gradients.length > 0) {
         config.gradients = json.gradients;
     }
+    if (json.styles) {
+        config.styles = json.styles;
+    }
 
     // Resolve Layer Colors
     if (json.layerMatrix && json.layerMatrix.length > 0) {
@@ -190,7 +193,7 @@ function loadBrandTokens(doc) {
         };
     }
 
-    config.source = tokensFile.fsName;
+    config.source = sourceName;
     return true;
 }
 
