@@ -1,19 +1,36 @@
 /* --- MODULE CONTRACT: 09-ui-utils.jsxinc ---
-Purpose: ScriptUI dialog layout helpers and user preference state persistence.
-Public entry points: UIUtils.
+Purpose: ScriptUI dialog component helpers, asset format scanner, and persistent preference management via serialized user data files.
+Public entry points: UIUtils (loadPreferences, savePreferences, getPref, scanForExtensions, updateFormatDropdown, addInputRow).
+Inputs: ScriptUI containers, preference dictionaries, directory paths.
+Outputs: UI controls, serialized preferences file, format extension lists.
 Required dependencies: None.
-Side effects: Reads and writes BrandSystem_Prefs.jsx in user preferences.
+Side effects: Reads and writes BrandSystem_Prefs.jsx in Folder.userData.
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
 
+/**
+ * @file 09-ui-utils.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description ScriptUI dialog component helpers, asset format scanner, and
+ * persistent preference management via serialized user data files.
+ */
+
+
 var UIUtils = {
+    /**
+     * Reads and deserializes user preferences from Folder.userData/BrandSystem_Prefs.jsx.
+     * @returns {Object} Deserialized preferences object or empty object on failure.
+     */
     loadPreferences: function() {
         var prefFile = new File(Folder.userData + "/BrandSystem_Prefs.jsx");
         if (prefFile.exists) {
-            try { 
-                prefFile.open('r'); 
-                var content = prefFile.read(); 
-                prefFile.close(); 
-                return eval(content); 
+            try {
+                prefFile.open('r');
+                var content = prefFile.read();
+                prefFile.close();
+                return eval(content);
             } catch (e) {
                 if (typeof BrandSystem !== "undefined" && BrandSystem.Logger) {
                     BrandSystem.Logger.warn("Failed to load preferences: " + e.message);
@@ -23,13 +40,19 @@ var UIUtils = {
         return {};
     },
 
+    /**
+     * Serializes and writes user preferences to Folder.userData/BrandSystem_Prefs.jsx.
+     * Merges incoming properties with existing persisted preferences.
+     * @param {Object} newPrefs - Object containing properties to persist.
+     * @returns {void}
+     */
     savePreferences: function(newPrefs) {
         var prefFile = new File(Folder.userData + "/BrandSystem_Prefs.jsx");
         var existingPrefs = this.loadPreferences();
         var mergedPrefs = {};
         for (var exKey in existingPrefs) mergedPrefs[exKey] = existingPrefs[exKey];
         for (var nKey in newPrefs) mergedPrefs[nKey] = newPrefs[nKey];
-        
+
         try {
             prefFile.open('w');
             var str = "({\n";
@@ -61,10 +84,22 @@ var UIUtils = {
         }
     },
 
-    getPref: function(userPrefs, key, fallback) { 
-        return userPrefs[key] !== undefined ? userPrefs[key] : fallback; 
+    /**
+     * Safely retrieves a preference key from the user preferences object with a default fallback.
+     * @param {Object} userPrefs - The loaded user preferences dictionary.
+     * @param {String} key - Preference property key.
+     * @param {*} fallback - Default fallback value if key is undefined.
+     * @returns {*}
+     */
+    getPref: function(userPrefs, key, fallback) {
+        return userPrefs[key] !== undefined ? userPrefs[key] : fallback;
     },
 
+    /**
+     * Scans a target directory and returns all supported image and vector extensions present.
+     * @param {String} path - Directory path to scan.
+     * @returns {Array<String>} Array of unique extension strings (e.g. [".svg", ".eps"]).
+     */
     scanForExtensions: function(path) {
         var exts = {};
         try {
@@ -88,42 +123,58 @@ var UIUtils = {
                 BrandSystem.Logger.warn("Failed to scan for extensions: " + e.message);
             }
         }
-        var result = []; 
-        for (var k in exts) result.push(k); 
+        var result = [];
+        for (var k in exts) result.push(k);
         return result;
     },
 
+    /**
+     * Updates a ScriptUI dropdown list with file format extensions discovered in a directory.
+     * @param {String} dirInputText - File path string from the directory input.
+     * @param {DropDownList} extDropdown - ScriptUI dropdown list control.
+     * @param {String} savedFmt - Previously selected format extension.
+     * @returns {void}
+     */
     updateFormatDropdown: function(dirInputText, extDropdown, savedFmt) {
         var exts = this.scanForExtensions(dirInputText);
         extDropdown.removeAll();
         if (exts.length === 0) {
-            extDropdown.add("item", "None Found"); 
-            extDropdown.selection = 0; 
+            extDropdown.add("item", "None Found");
+            extDropdown.selection = 0;
             extDropdown.enabled = false;
         } else {
             extDropdown.enabled = true;
-            for (var i = 0; i < exts.length; i++) { 
-                extDropdown.add("item", exts[i]); 
+            for (var i = 0; i < exts.length; i++) {
+                extDropdown.add("item", exts[i]);
             }
             var found = false;
-            for (var j = 0; j < extDropdown.items.length; j++) { 
-                if (extDropdown.items[j].text === savedFmt) { 
-                    extDropdown.selection = j; 
-                    found = true; 
-                    break; 
-                } 
+            for (var j = 0; j < extDropdown.items.length; j++) {
+                if (extDropdown.items[j].text === savedFmt) {
+                    extDropdown.selection = j;
+                    found = true;
+                    break;
+                }
             }
             if (!found && exts.length > 0) extDropdown.selection = 0;
         }
     },
 
-    addInputRow: function(parent, label, defaultVal, suffix, tooltip) { 
-        var r = parent.add("group"); 
-        r.add("statictext", undefined, label).preferredSize.width = 100; 
-        var i = r.add("edittext", undefined, String(defaultVal)); 
-        i.preferredSize.width = 140; 
-        if (tooltip) i.helpTip = tooltip; 
-        if (suffix) r.add("statictext", undefined, suffix).preferredSize.width = 30; 
-        return i; 
+    /**
+     * Helper to construct a standardized ScriptUI text input row with label, input, and optional unit suffix.
+     * @param {Group|Panel} parent - Parent ScriptUI container.
+     * @param {String} label - Input label string.
+     * @param {*} defaultVal - Initial value for the edit text field.
+     * @param {String} [suffix] - Optional unit suffix text (e.g. "pt", "x", "mm").
+     * @param {String} [tooltip] - Optional hover tooltip string.
+     * @returns {EditText} The created ScriptUI edit text control.
+     */
+    addInputRow: function(parent, label, defaultVal, suffix, tooltip) {
+        var r = parent.add("group");
+        r.add("statictext", undefined, label).preferredSize.width = 100;
+        var i = r.add("edittext", undefined, String(defaultVal));
+        i.preferredSize.width = 140;
+        if (tooltip) i.helpTip = tooltip;
+        if (suffix) r.add("statictext", undefined, suffix).preferredSize.width = 30;
+        return i;
     }
 };

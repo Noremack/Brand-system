@@ -1,9 +1,22 @@
 /* --- MODULE CONTRACT: 11-reports.jsxinc ---
-Purpose: Structured publishing diagnostics, performance auditing, JSON/Markdown report generation, and continual log file rotation.
+Purpose: Structured publishing diagnostics, performance metrics harvesting, Markdown and JSON report generation, and continual log file rotation.
 Public entry points: BrandReports (createReport, formatReportMarkdown, formatReportJson, writeReport, rotateLog, appendContinualLog).
+Inputs: Execution metrics, document metadata, trace logs, error objects.
+Outputs: Markdown report (*-brand-report.md), JSON telemetry (*-brand-report.json), rotated continual log.
 Required dependencies: 01-config.jsxinc, 02-utilities.jsxinc.
 Side effects: Writes diagnostic report files to disk and caps log file sizes to prevent disk bloat.
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
+
+/**
+ * @file 11-reports.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description Structured publishing diagnostics, performance metrics harvesting,
+ * Markdown and JSON report generation, and automated continual log file rotation.
+ */
+
 
 var BrandReports = (function() {
 

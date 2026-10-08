@@ -1,9 +1,23 @@
 /* --- MODULE CONTRACT: 10-brand-engine.jsxinc ---
-Purpose: Master orchestrator coordinating color building, typography styling, object generation, and template compilation within atomic transactions.
-Public entry points: BrandSystem (analyze, process, processSafe, generateTemplate, createStyles, buildTypographyEngine, buildColorEngine, buildObjectEngineDynamic, config, Logger, BrandReports).
+Purpose: Master orchestrator coordinating color building, typography styling, object generation, template compilation, and atomic transactions.
+Public entry points: BrandSystem (analyze, process, processSafe, generateTemplate, isTemplateCacheValid, createStyles, buildTypographyEngine, buildColorEngine, buildObjectEngineDynamic, config, Logger, BrandReports).
+Inputs: InDesign Document reference, user preference parameters.
+Outputs: Styled document, pre-compiled template (.indt), execution telemetry report.
 Required dependencies: 01-config.jsxinc through 09-ui-utils.jsxinc, 11-reports.jsxinc.
 Side effects: Modifies active InDesign document within app.doScript atomic transactions.
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
+
+/**
+ * @file 10-brand-engine.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description Master orchestrator coordinating color building, typography
+ * hierarchies, object style generation, template cache verification, and atomic
+ * document processing transactions.
+ */
+
 
 #include "01-config.jsxinc"
 #include "02-utilities.jsxinc"

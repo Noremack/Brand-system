@@ -1,44 +1,76 @@
-# Gemini Project Guidance: Brand System
+# Gemini Project Guidance: Adobe InDesign Brand System Engine
 
-This document provides conventions and instructions for developing and maintaining the InDesign Brand System scripts.
+This document provides technical conventions, development rules, architectural boundaries, and maintenance procedures for developing and maintaining the **InDesign Brand System** scripts.
 
-## Project Overview
+---
 
-This project is a suite of ExtendScript (ES3) scripts for Adobe InDesign that automates the application of a comprehensive brand identity to documents. It uses a hybrid architecture, combining pre-built `.indt` templates for complex styles with a runtime engine for dynamic layout calculations.
+## 1. Project Overview & Architectural Boundaries
 
-## Core Principles
+The **InDesign Brand System** is an enterprise ExtendScript (ES3) suite designed for Adobe InDesign CS6 through CC 2026+. It automates the application of Queensland Government Design System (QGDS) brand identities, typography hierarchies, master pages, swatches, and vector assets.
 
-1.  **ES3 JavaScript ONLY:** The InDesign scripting environment is very old. **Do not use `let`, `const`, arrow functions, or other modern JS features.** All code must be ES3-compatible. Use `modules/02-utilities.jsxinc` for standard ES3 polyfills if needed.
-2.  **Hybrid Architecture:** Styles are cached in `.indt` templates within `templates/`, backed by companion `cache-manifest.json` metadata.
-3.  **Centralized Configuration:** All design tokens (colors, fonts, sizes, scales) are managed in `brand-tokens.json` (with fallback in `modules/01-config.jsxinc`). Avoid hardcoding values in engine or UI scripts.
+### The Hybrid Architecture
+To bypass the performance bottleneck of creating hundreds of styles via the InDesign DOM:
+1. **Pre-compiled Format Templates:** Format-specific styles (147+ object and table variations) are pre-compiled into `.indt` master templates within `templates/`, tracked by `cache-manifest.json`.
+2. **Runtime Layout Engine:** Physical page margins, column gutters, stratified layers, and vector header/footer artwork are calculated and placed mathematically at runtime.
+3. **Atomic Transactions:** All DOM mutations must be encapsulated within `app.doScript()` using `UndoModes.ENTIRE_SCRIPT` to provide single-click undo (`Ctrl+Z`).
 
-## Development Workflow
+---
 
-1.  **Making Configuration Changes:**
-    *   Modify the design tokens in `brand-tokens.json`.
-    *   **CRITICAL:** After saving changes, you **MUST** run `Update Brand Templates.jsx` from the InDesign Scripts Panel. This re-builds the cached `.indt` templates with your new styles.
-    *   Your changes will now be available when you run `Apply Brand System.jsx`.
+## 2. Strict Core Engineering Rules
 
-2.  **Testing Changes:**
-    *   Run automated test suite: `node tests/run-all-tests.js`.
-    *   Run ES3 scanner: `node tools/scan-es3.js`.
-    *   Re-assemble standalone distribution bundle: `node tools/assemble.js`.
-    *   Use `Apply Brand System.jsx` on a test document in InDesign to inspect visual results.
+### Rule 1: Strict ExtendScript ES3 JavaScript ONLY
+Adobe InDesign's ExtendScript interpreter is based on ECMAScript 3 (1999). Modern JavaScript features (ES6+) **will immediately crash InDesign with syntax errors**.
+* ❌ **NO `let` or `const`** — Use `var` exclusively.
+* ❌ **NO arrow functions `() => {}`** — Use standard `function() {}`.
+* ❌ **NO template literals `` `Hello ${name}` ``** — Use string concatenation `"Hello " + name`.
+* ❌ **NO default parameter values `function(x = 1)`** — Use `var x = val !== undefined ? val : 1;`.
+* ❌ **NO destructuring, spread operators, or rest parameters**.
+* ❌ **NO unquoted ES3 reserved keywords as object keys** (e.g. use `{ "default": 1 }` or `{ "export": true }`, not `{ default: 1 }`).
+* Use `modules/02-utilities.jsxinc` for standard ES3 polyfills (`Array.indexOf`, `forEach`, `map`, `filter`, `Object.keys`).
 
-3.  **Adding New Logic:**
-    *   New user-facing scripts belong in the root directory.
-    *   Engine logic belongs in single-responsibility numbered modules under `modules/`.
-    *   Always update `module-verification.json` and standalone bundle via `tools/assemble.js`.
+### Rule 2: Single Source of Truth
+* All visual attributes, typography scales, colors, format dimensions, and style schemas are declared in `brand-tokens.json`.
+* Do not introduce hardcoded fallback values into scripts or modules; declare new tokens in `brand-tokens.json` and read them via `config`.
 
-4.  **Logging & Diagnostics:**
-    *   Use `Logger` for console and trace logging, with automated 512 KB log rotation.
-    *   Use `BrandReports` (`modules/11-reports.jsxinc`) for structured Markdown and JSON publishing diagnostics.
+### Rule 3: Rebuilding Templates After Changes
+* Whenever `brand-tokens.json` or `modules/` are modified, the pre-compiled template cache in `templates/` becomes stale.
+* Run **`Update Brand Templates.jsx`** from the InDesign Scripts Panel to rebuild the template cache.
 
-## Key Modules
+### Rule 4: Module Contracts & Encapsulation
+* Every file in `modules/*.jsxinc` must begin with an enterprise `MODULE CONTRACT` header comment documenting its Purpose, Public Entry Points, Dependencies, Side Effects, and Compatibility.
+* Each module must have a single clear responsibility.
 
-*   **`Apply Brand System.jsx`**: The main user-facing ScriptUI dashboard for applying the brand system.
-*   **`Update Brand Templates.jsx`**: Rebuilds cached `.indt` templates and `cache-manifest.json`.
-*   **`Batch Generate Base Templates.jsx`**: Generates template distributions and PDF catalogs across all page formats.
-*   **`brand-tokens.json`**: Master design tokens (colors, typography matrix, page matrices, QGDS styling).
-*   **`modules/`**: Numbered single-responsibility ExtendScript modules (`01-config` through `11-reports`).
-*   **`dist/InDesign Brand System.bundle.jsx`**: Standalone monolithic distribution bundle.
+---
+
+## 3. Standard Development Workflow
+
+1. **Token & Styling Adjustments:**
+   - Update `brand-tokens.json`.
+   - Re-compile templates via `Update Brand Templates.jsx`.
+
+2. **Quality Assurance & Verification:**
+   - Run unit test suite: `node tests/run-all-tests.js` (Must pass all 147 tests).
+   - Run ES3 syntax scanner: `node tools/scan-es3.js` (Must report 100% compliant).
+   - Run bundle assembly: `node tools/assemble.js` (Updates `dist/InDesign Brand System.bundle.jsx` and syncs to InDesign Scripts Panel).
+
+3. **InDesign Visual Verification:**
+   - Launch InDesign.
+   - Run `Apply Brand System.jsx` on sample test documents (A4, A3, DL, etc.).
+   - Verify layout margins, typography styles, object styles, and master spreads.
+
+---
+
+## 4. Key File Map
+
+| Path | Purpose |
+| :--- | :--- |
+| `Apply Brand System.jsx` | Main user-facing ScriptUI dashboard. |
+| `Update Brand Templates.jsx` | Pre-compiles `.indt` format templates in `templates/`. |
+| `Batch Generate Base Templates.jsx` | Generates distribution `.indt` templates and PDF catalogs across all page formats. |
+| `Export Custom Document.jsx` | Packages bespoke documents without modifying working files. |
+| `Extract Config Information.jsx` | Reverse-engineers selected elements into `brand-tokens.json` tokens. |
+| `Uninstall Brand System.jsx` | Wipes custom styles and restores InDesign defaults. |
+| `brand-tokens.json` | Master design tokens and declarative style schemas. |
+| `module-verification.json` | Cryptographic SHA-256 audit manifest. |
+| `modules/` | Numbered single-responsibility modules (`01-config` to `11-reports`). |
+| `templates/` | Pre-compiled format templates and `cache-manifest.json`. |

@@ -12,6 +12,13 @@
 - **Cross-Ecosystem Synchronization Test:** Implemented automated test assertion in `tests/test-brand-system.js` verifying that 100% of QGDS styles defined in `brand-tokens.json` (22 paragraph, 7 character, 12 compound object styles) are recognized by the HTML Exporter's AST folding blueprint (`20-compound-folder.jsxinc`).
 - **Dynamic ScriptUI Dialog Refinements:** Replaced hardcoded default theme string fallbacks with dynamic `config.availableThemes[0]` resolution in `Apply Brand System.jsx`, `Batch Generate Base Templates.jsx`, and `Update Brand Templates.jsx`.
 - **Modernized Template Cache Directory (`templates/`):** Replaced legacy hidden `.system/Resources/` directory with a clean top-level `templates/` folder alongside `modules/` for storing pre-compiled `.indt` format templates and `cache-manifest.json` metadata. Added multi-tier resolution in `10-brand-engine.jsxinc` (templates/ -> Resources/ -> legacy fallback) and protected template caches from wipe during distribution synchronization in `tools/assemble.js`.
+- **Comprehensive Documentation & Inline Comment Overhaul (Enterprise Best Practices):**
+  - Standardized enterprise JSDoc file headers (`@file`, `@package`, `@version`, `@author`, `@description`, Architecture/Lifecycle, Dependencies, Side Effects, Compatibility) across all 6 standalone launcher scripts (`Apply Brand System.jsx`, `Update Brand Templates.jsx`, `Uninstall Brand System.jsx`, `Extract Config Information.jsx`, `Export Custom Document.jsx`, `Batch Generate Base Templates.jsx`) and all 11 core engine modules (`01-config.jsxinc` through `11-reports.jsxinc`).
+  - Standardized `MODULE CONTRACT` blocks across all 11 numbered `.jsxinc` modules defining Purpose, Public Entry Points, Inputs, Outputs, Required Dependencies, Side Effects, and Compatibility, strictly matching the contract patterns in the HTML Exporter and Semantic Styler packages.
+  - Comprehensive JSDoc method blocks (`@param`, `@returns`, `@throws`) on all public methods and helper functions.
+  - Added structured section dividers (`// ==========================================`) delineating functional boundaries in all scripts.
+  - Replaced obsolete paths in `Extract Config Information.jsx` and updated mathematical scaling formulas with clear inline docstrings.
+  - Fully synchronized `README.md` and `GEMINI.md` to reflect the declarative token architecture, `templates/` cache directory, and testing workflows.
 - **Unit Test Suite Verification:** All 147 pure-function tests passing across the entire ecosystem. Zero ES3 syntax violations across 41 scripts.
 
 ## [2.3.0] - 2026-10-08

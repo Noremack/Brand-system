@@ -1,17 +1,38 @@
 /* --- MODULE CONTRACT: 03-token-loader.jsxinc ---
-Purpose: External JSON token loader resolving brand-tokens.json from active document folder, script folder, and fallback hierarchy.
-Public entry points: loadBrandTokens, findBrandTokensFile.
+Purpose: Multi-tiered JSON design token loader resolving and parsing brand-tokens.json across project and system directories.
+Public entry points: loadBrandTokens, findBrandTokensFile, resolveUiColor.
+Inputs: Active InDesign Document reference, filesystem paths.
+Outputs: Hydrated runtime config dictionary.
 Required dependencies: 01-config.jsxinc, 02-utilities.jsxinc.
-Side effects: Merges loaded tokens into the global config object.
+Side effects: Mutates the global config object by hydrating all token properties.
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
+
+/**
+ * @file 03-token-loader.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description Multi-tiered JSON design token loader. Searches for and parses
+ * brand-tokens.json across project document folders, script directories, and
+ * host application support folders, hydrating the runtime config dictionary.
+ *
+ * Search Hierarchy:
+ * 1. Active Document Directory: Per-project token override (docFolder/brand-tokens.json).
+ * 2. Script Bundle Directory: Parent and grandparent folders of the active script.
+ * 3. InDesign AppData / Scripts Panel: Version-specific user scripting directories.
+ * 4. Embedded Fallback: In standalone bundle builds, hydrates from __EMBEDDED_BRAND_TOKENS__.
+ */
+
 
 /**
  * Searches for brand-tokens.json across multi-tiered directory hierarchy:
  * 1. Document directory (per-project override)
  * 2. Script bundle root directory
  * 3. Standard InDesign Scripts Panel / AppData directories
- * @param {Document} [doc] - Optional active document reference
- * @returns {File|null}
+ *
+ * @param {Document} [doc] - Optional active document reference for project-level overrides.
+ * @returns {File|null} File handle if found, or null.
  */
 function findBrandTokensFile(doc) {
     // 1. Check document folder (Project-level override)
@@ -74,7 +95,9 @@ function findBrandTokensFile(doc) {
 }
 
 /**
- * Resolves UIColors enum safely from token string name.
+ * Resolves an InDesign UIColors enum value safely from a token string name.
+ * @param {String} colorName - Name of the color (e.g. "BLUE", "RED", "GRAY").
+ * @returns {UIColors} Corresponding UIColors enum value or UIColors.BLUE fallback.
  */
 function resolveUiColor(colorName) {
     if (typeof UIColors === "undefined") return colorName;
@@ -87,8 +110,9 @@ function resolveUiColor(colorName) {
 /**
  * Reads and applies tokens from brand-tokens.json into the global config object.
  * In standalone bundle mode, falls back to build-time __EMBEDDED_BRAND_TOKENS__.
- * @param {Document} [doc] - Optional active document reference
- * @returns {Boolean} True if loaded from external file or embedded tokens, false if unloaded
+ *
+ * @param {Document} [doc] - Optional active document reference.
+ * @returns {Boolean} True if tokens were successfully resolved and loaded, false otherwise.
  */
 function loadBrandTokens(doc) {
     var tokensFile = findBrandTokensFile(doc);

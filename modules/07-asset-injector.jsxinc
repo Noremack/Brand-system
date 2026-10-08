@@ -1,9 +1,22 @@
 /* --- MODULE CONTRACT: 07-asset-injector.jsxinc ---
-Purpose: Vector asset placement, SSD proxy caching, master page footer/header decoration, and typography specimen injection.
-Public entry points: injectFooters, injectSpecimen, findFuzzyAsset, findLayerFuzzy.
+Purpose: Vector asset placement, temporary proxy caching, master page footer and header decoration, back cover blocks, and typography specimen injection.
+Public entry points: findLayerFuzzy, findFuzzyAsset, injectFooterGraphic, injectContentMasterFooters, injectHeaderGraphic, injectBackCoverElement, injectStyleSpecimen.
+Inputs: InDesign Document reference, layout metrics, brand variants, asset paths.
+Outputs: Placed and embedded master page items, typography specimen frames.
 Required dependencies: 01-config.jsxinc, 02-utilities.jsxinc, 04-cache-manager.jsxinc.
-Side effects: Injects text frames and placed graphics into document master and body spreads.
+Side effects: Places vector assets, unlinks them for permanent embedding, and injects specimen text frames.
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
+
+/**
+ * @file 07-asset-injector.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description Vector asset placement, temporary proxy caching, master page
+ * footer and header decoration, back cover info blocks, and typography specimen injection.
+ */
+
 
 
 /**

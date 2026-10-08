@@ -1,87 +1,212 @@
 /* --- MODULE CONTRACT: 02-utilities.jsxinc ---
-Purpose: Dimension math (sysUtils.scaleMm), type calculation (sysUtils.calcType), object merging, ES3 polyfills, telemetry Logger, and safeValue.
-Public entry points: sysUtils, Logger, safeValue.
-Side effects: Injects standard ES3 polyfills into Array and Object if missing in host environment.
+Purpose: Core mathematical scaling utilities, standard ES3 polyfills, safe property accessors, and centralized execution telemetry logging.
+Public entry points: sysUtils (merge, scaleMm, calcType), safeValue, Logger.
+Inputs: Dimensions, points, scaling ratios, telemetry events.
+Outputs: Scaled millimeter values, calculated typography parameters, merged objects, telemetry logs.
+Required dependencies: None.
+Side effects: Polyfills Array.prototype and Object.keys; writes to BrandSystem_ContinualLog.txt with 512 KB rotation.
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
+
+/**
+ * @file 02-utilities.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description Core mathematical scaling utilities, standard ES3 polyfills,
+ * safe property accessors, and centralized execution telemetry logging.
+ */
+
 
 // =============================================================================
 // 1. ES3 RUNTIME POLYFILLS
 // =============================================================================
+
+/**
+ * Polyfill for Array.prototype.indexOf (ECMA-262 5th Edition).
+ */
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function(searchElement, fromIndex) {
-        var k; if (this == null) throw new TypeError('"this" is null or not defined');
-        var o = Object(this); var len = o.length >>> 0; if (len === 0) return -1;
-        var n = fromIndex | 0; if (n >= len) return -1;
-        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
-        while (k < len) { if (k in o && o[k] === searchElement) return k; k++; }
+        if (this == null) throw new TypeError('"this" is null or not defined');
+        var o = Object(this);
+        var len = o.length >>> 0;
+        if (len === 0) return -1;
+        var n = fromIndex | 0;
+        if (n >= len) return -1;
+        var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+        while (k < len) {
+            if (k in o && o[k] === searchElement) return k;
+            k++;
+        }
         return -1;
     };
 }
 
+/**
+ * Polyfill for Array.prototype.forEach (ECMA-262 5th Edition).
+ */
 if (!Array.prototype.forEach) {
     Array.prototype.forEach = function(callback, thisArg) {
-        if (this == null) throw new TypeError(' this is null or not defined');
+        if (this == null) throw new TypeError('"this" is null or not defined');
         if (typeof callback !== "function") throw new TypeError(callback + ' is not a function');
-        var O = Object(this); var len = O.length >>> 0; var T;
-        if (arguments.length > 1) T = thisArg;
+        var o = Object(this);
+        var len = o.length >>> 0;
+        var t = (arguments.length > 1) ? thisArg : undefined;
         var k = 0;
-        while (k < len) { var kValue; if (k in O) { kValue = O[k]; callback.call(T, kValue, k, O); } k++; }
+        while (k < len) {
+            if (k in o) {
+                callback.call(t, o[k], k, o);
+            }
+            k++;
+        }
     };
 }
 
+/**
+ * Polyfill for Array.prototype.map (ECMA-262 5th Edition).
+ */
 if (!Array.prototype.map) {
     Array.prototype.map = function(callback, thisArg) {
-        if (this == null) throw new TypeError(' this is null or not defined');
-        if (typeof callback !== 'function') throw new TypeError(callback + ' is not a function');
-        var O = Object(this); var len = O.length >>> 0; var T;
-        if (arguments.length > 1) T = thisArg;
-        var A = new Array(len); var k = 0;
-        while (k < len) { var kValue, mappedValue; if (k in O) { kValue = O[k]; mappedValue = callback.call(T, kValue, k, O); A[k] = mappedValue; } k++; }
-        return A;
+        if (this == null) throw new TypeError('"this" is null or not defined');
+        if (typeof callback !== "function") throw new TypeError(callback + ' is not a function');
+        var o = Object(this);
+        var len = o.length >>> 0;
+        var t = (arguments.length > 1) ? thisArg : undefined;
+        var a = new Array(len);
+        var k = 0;
+        while (k < len) {
+            if (k in o) {
+                a[k] = callback.call(t, o[k], k, o);
+            }
+            k++;
+        }
+        return a;
     };
 }
 
+/**
+ * Polyfill for Array.prototype.filter (ECMA-262 5th Edition).
+ */
 if (!Array.prototype.filter) {
     Array.prototype.filter = function(callback, thisArg) {
-        if (this == null) throw new TypeError(' this is null or not defined');
-        if (typeof callback !== 'function') throw new TypeError(callback + ' is not a function');
-        var O = Object(this); var len = O.length >>> 0; var res = []; var T;
-        if (arguments.length > 1) T = thisArg;
-        for (var i = 0; i < len; i++) { if (i in O) { var val = O[i]; if (callback.call(T, val, i, O)) res.push(val); } }
+        if (this == null) throw new TypeError('"this" is null or not defined');
+        if (typeof callback !== "function") throw new TypeError(callback + ' is not a function');
+        var o = Object(this);
+        var len = o.length >>> 0;
+        var t = (arguments.length > 1) ? thisArg : undefined;
+        var res = [];
+        for (var i = 0; i < len; i++) {
+            if (i in o) {
+                var val = o[i];
+                if (callback.call(t, val, i, o)) {
+                    res.push(val);
+                }
+            }
+        }
         return res;
     };
 }
 
+/**
+ * Polyfill for Object.keys (ECMA-262 5th Edition).
+ * Handles the classic IE/ExtendScript DontEnum bug where toString is skipped.
+ */
 if (!Object.keys) {
     Object.keys = (function() {
-        var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'), dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'], dontEnumsLength = dontEnums.length;
-        return function(obj) { if (typeof obj !== 'function' && (typeof obj !== 'object' || obj === null)) throw new TypeError('Object.keys called on non-object');
-            var result = [], prop, i; for (prop in obj) { if (hasOwnProperty.call(obj, prop)) { result.push(prop); } } if (hasDontEnumBug) { for (i = 0; i < dontEnumsLength; i++) { if (hasOwnProperty.call(obj, dontEnums[i])) { result.push(dontEnums[i]); } } } return result; };
+        var hasOwnProperty = Object.prototype.hasOwnProperty;
+        var hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString');
+        var dontEnums = [
+            'toString',
+            'toLocaleString',
+            'valueOf',
+            'hasOwnProperty',
+            'isPrototypeOf',
+            'propertyIsEnumerable',
+            'constructor'
+        ];
+        var dontEnumsLength = dontEnums.length;
+
+        return function(obj) {
+            if (typeof obj !== 'function' && (typeof obj !== 'object' || obj === null)) {
+                throw new TypeError('Object.keys called on non-object');
+            }
+            var result = [];
+            for (var prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    result.push(prop);
+                }
+            }
+            if (hasDontEnumBug) {
+                for (var i = 0; i < dontEnumsLength; i++) {
+                    if (hasOwnProperty.call(obj, dontEnums[i])) {
+                        result.push(dontEnums[i]);
+                    }
+                }
+            }
+            return result;
+        };
     }());
 }
 
 // =============================================================================
-// 2. MATH & OBJECT UTILITIES
+// 2. MATHEMATICAL & OBJECT UTILITIES
 // =============================================================================
+
 var sysUtils = {
-    merge: function(base, newProps) { 
-        var result = {}; 
-        for (var key in base) result[key] = base[key]; 
-        for (var k in newProps) result[k] = newProps[k]; 
-        return result; 
+    /**
+     * Creates a shallow merge of two objects. Properties in newProps overwrite base.
+     * @param {Object} base - Initial object properties.
+     * @param {Object} newProps - Overriding properties.
+     * @returns {Object} New merged object.
+     */
+    merge: function(base, newProps) {
+        var result = {};
+        for (var key in base) {
+            result[key] = base[key];
+        }
+        for (var k in newProps) {
+            result[k] = newProps[k];
+        }
+        return result;
     },
+
+    /**
+     * Responsively scales a millimeter measurement relative to a baseline point size.
+     * Snaps to the nearest 0.25mm increment for clean InDesign grid alignment.
+     * @param {Number} val - Base millimeter value to scale.
+     * @param {Number} currentPt - Active document point size.
+     * @param {Number} referencePt - Universal reference baseline (e.g. 12pt).
+     * @returns {String} Scaled measurement formatted with "mm" suffix (e.g. "15.25mm").
+     */
     scaleMm: function(val, currentPt, referencePt) {
         var scale = currentPt / referencePt;
         return (Math.round((val * scale) * 4) / 4) + "mm";
     },
+
+    /**
+     * Calculates modular typographic scale properties (point size and leading).
+     * Formula: size = basePt * (scaleRatio ^ scalePower)
+     * @param {Number} scalePower - Heading scale exponent (e.g. 4 for H1, 1 for H4).
+     * @param {Number} leadingRatio - Line height multiplier (e.g. 1.25x).
+     * @param {Number} basePt - Base font size in points.
+     * @param {Number} scaleRatio - Scale multiplier (e.g. 1.25x).
+     * @returns {Object} Object containing formatted pointSize and leading strings.
+     */
     calcType: function(scalePower, leadingRatio, basePt, scaleRatio) {
         var size = Math.round(basePt * Math.pow(scaleRatio, scalePower));
-        return { pointSize: size + "pt", leading: Math.round(size * leadingRatio) + "pt" };
+        return {
+            pointSize: size + "pt",
+            leading: Math.round(size * leadingRatio) + "pt"
+        };
     }
 };
 
 /**
  * Safely evaluates a property accessor function with a default fallback.
+ * Prevents fatal exceptions when reading optional nested DOM properties.
+ * @param {Function} fn - Accessor function to execute.
+ * @param {*} fallback - Fallback value returned if fn throws or returns undefined/null.
+ * @returns {*}
  */
 function safeValue(fn, fallback) {
     try {
@@ -95,12 +220,37 @@ function safeValue(fn, fallback) {
 // =============================================================================
 // 3. TELEMETRY & EXECUTION LOGGER
 // =============================================================================
+
 var Logger = {
+    /**
+     * Chronological execution log buffer.
+     * @type {Array<String>}
+     */
     trace: [],
+
+    /**
+     * High-resolution execution timers keyed by label.
+     * @type {Object}
+     */
     timers: {},
+
+    /**
+     * Active ScriptUI progress window reference.
+     * @type {Window|null}
+     */
     progressWindow: null,
+
+    /**
+     * Active ScriptUI progress text element reference.
+     * @type {StaticText|null}
+     */
     progressText: null,
-    
+
+    /**
+     * Displays a lightweight non-modal ScriptUI progress palette.
+     * @param {String} [title="Processing..."] - Palette window title.
+     * @returns {void}
+     */
     showProgress: function(title) {
         if (this.progressWindow) return;
         try {
@@ -109,7 +259,7 @@ var Logger = {
             this.progressWindow.alignChildren = ["fill", "center"];
             this.progressWindow.spacing = 15;
             this.progressWindow.margins = 20;
-            
+
             this.progressText = this.progressWindow.add("statictext", undefined, "Initializing...");
             this.progressText.preferredSize.width = 300;
 
@@ -117,7 +267,12 @@ var Logger = {
             this.progressWindow.update();
         } catch (_) {}
     },
-    
+
+    /**
+     * Updates the status message displayed on the progress palette.
+     * @param {String} msg - Status message string.
+     * @returns {void}
+     */
     updateProgress: function(msg) {
         if (this.progressWindow && this.progressText) {
             try {
@@ -126,7 +281,11 @@ var Logger = {
             } catch (_) {}
         }
     },
-    
+
+    /**
+     * Closes and disposes of the ScriptUI progress palette.
+     * @returns {void}
+     */
     closeProgress: function() {
         if (this.progressWindow) {
             try {
@@ -137,18 +296,56 @@ var Logger = {
         }
     },
 
-    info: function(msg) { this.trace.push("[INFO] " + new Date().toTimeString().split(' ')[0] + " - " + msg); },
-    warn: function(msg) { this.trace.push("[WARN] " + new Date().toTimeString().split(' ')[0] + " - " + msg); },
-    startTimer: function(label) { 
-        this.timers[label] = new Date().getTime(); 
-        this.info("STARTED: " + label); 
+    /**
+     * Logs an informational entry with a current timestamp.
+     * @param {String} msg - Message to record.
+     * @returns {void}
+     */
+    info: function(msg) {
+        this.trace.push("[INFO] " + new Date().toTimeString().split(' ')[0] + " - " + msg);
+    },
+
+    /**
+     * Logs a warning entry with a current timestamp.
+     * @param {String} msg - Warning message to record.
+     * @returns {void}
+     */
+    warn: function(msg) {
+        this.trace.push("[WARN] " + new Date().toTimeString().split(' ')[0] + " - " + msg);
+    },
+
+    /**
+     * Starts an execution stopwatch timer for a named operation.
+     * @param {String} label - Operation label.
+     * @returns {void}
+     */
+    startTimer: function(label) {
+        this.timers[label] = new Date().getTime();
+        this.info("STARTED: " + label);
         this.updateProgress(label + "...");
     },
-    endTimer: function(label, detail) { 
-        var ms = new Date().getTime() - this.timers[label]; 
+
+    /**
+     * Stops an execution stopwatch timer and logs the elapsed duration in milliseconds.
+     * @param {String} label - Operation label.
+     * @param {String} [detail] - Optional completion detail annotation.
+     * @returns {void}
+     */
+    endTimer: function(label, detail) {
+        var ms = new Date().getTime() - this.timers[label];
         var ext = detail ? " (" + detail + ")" : "";
-        this.info("COMPLETED: " + label + " in " + ms + "ms" + ext); 
+        this.info("COMPLETED: " + label + " in " + ms + "ms" + ext);
     },
+
+    /**
+     * Flushes the in-memory execution trace and diagnostics to BrandSystem_ContinualLog.txt.
+     * Automatically rotates log files when exceeding 512 KB to prevent disk bloat.
+     *
+     * @param {Error|null} errorObj - Fatal exception object, if a crash occurred.
+     * @param {Boolean} isSuccess - True if pipeline completed successfully.
+     * @param {Object} [reportObj] - Structured publishing report data object.
+     * @returns {String} Absolute path to the written log file, or empty string on failure.
+     */
     dump: function(errorObj, isSuccess, reportObj) {
         var logFile = null;
         try {
@@ -157,27 +354,35 @@ var Logger = {
                 var sf = new File($.fileName);
                 if (sf.parent) {
                     if (sf.parent.name === "modules" || sf.parent.name === "lib") {
-                        scriptFolder = (sf.parent.parent && sf.parent.name === "lib") ? sf.parent.parent.parent.fsName : (sf.parent.parent ? sf.parent.parent.fsName : sf.parent.fsName);
+                        scriptFolder = (sf.parent.parent && sf.parent.name === "lib")
+                            ? sf.parent.parent.parent.fsName
+                            : (sf.parent.parent ? sf.parent.parent.fsName : sf.parent.fsName);
                     } else {
                         scriptFolder = sf.parent.fsName;
                     }
                 }
             }
+
             if (scriptFolder) {
                 logFile = new File(scriptFolder + "/BrandSystem_ContinualLog.txt");
+
+                // Delegate to BrandReports engine if loaded
                 if (typeof BrandReports !== "undefined" && BrandReports.appendContinualLog) {
                     return BrandReports.appendContinualLog(logFile, reportObj, this.trace, errorObj);
                 }
-                
-                // Standalone fallback if BrandReports is not yet in scope
+
+                // Fallback direct logging with 512 KB rotation
                 if (logFile.exists && logFile.length > 512 * 1024) {
                     var backupLog = new File(scriptFolder + "/BrandSystem_ContinualLog_old.txt");
-                    if (backupLog.exists) try { backupLog.remove(); } catch (_) {}
+                    if (backupLog.exists) {
+                        try { backupLog.remove(); } catch (_) {}
+                    }
                     try { logFile.copy(backupLog); } catch (_) {}
                     logFile.open("w");
                 } else {
                     logFile.open("a");
                 }
+
                 logFile.writeln("\n\n========================================");
                 logFile.writeln("=== BRAND SYSTEM EXECUTION LOG ===");
                 logFile.writeln("Status: " + (isSuccess ? "SUCCESS" : "CRASH"));
@@ -196,7 +401,9 @@ var Logger = {
                 return logFile.fsName;
             }
         } catch (_) {
-            if (logFile) try { logFile.close(); } catch (_) {}
+            if (logFile) {
+                try { logFile.close(); } catch (_) {}
+            }
         }
         return "";
     }

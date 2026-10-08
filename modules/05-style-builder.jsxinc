@@ -1,51 +1,73 @@
 /* --- MODULE CONTRACT: 05-style-builder.jsxinc ---
-Purpose: Compiles design tokens into InDesign native Paragraph, Character, Object, and Table styles with QGDS export tag maps.
-Public entry points: StyleBuilder.
+Purpose: Compiles design tokens into InDesign native Paragraph, Character, Object, Table, and Cell style descriptors with QGDS semantic export tag maps.
+Public entry points: StyleBuilder (getThemeColors, objectStyleDefinitions, characterStyleDefinitions, paragraphStyleDefinitions, cellStyleDefinitions, tableStyleDefinitions).
+Inputs: Theme dictionaries, typography metrics, layout scale factors.
+Outputs: Structured style definition arrays ready for InDesign DOM creation.
 Required dependencies: 01-config.jsxinc, 02-utilities.jsxinc.
-Side effects: None.
+Side effects: Pure style definition generator; does not directly mutate the InDesign DOM.
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
 
+/**
+ * @file 05-style-builder.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description Compiles design tokens into InDesign native Paragraph, Character,
+ * Object, Table, and Cell style descriptors with QGDS semantic export tag maps
+ * (styleExportTagMaps) and responsive millimeter scaling.
+ */
+
+
 var StyleBuilder = {
-    
+
     // =========================================================================
-    // 1. THEME ENGINE
+    // 1. THEME ENGINE & COLOR ROLE RESOLUTION
     // =========================================================================
+
     /**
-     * Resolves context-aware variables (like text color) depending on if the user selected Standard or Reverse mode.
+     * Resolves context-aware color tokens (headings, text, borders, fills)
+     * based on the selected brand theme and Style Mode (Standard Light vs Reverse Dark).
+     *
+     * @param {String} primaryTheme - Primary theme name (e.g. "Blue", "Red", "Sand").
+     * @param {Boolean} isReverse - True if generating inverted high-contrast dark styles.
+     * @returns {Object} Dictionary of mapped swatch role names.
      */
     getThemeColors: function(primaryTheme, isReverse) {
-        if (!primaryTheme) primaryTheme = "Blue"; 
+        if (!primaryTheme) primaryTheme = "Blue";
         var hasExtraDark = (primaryTheme === "Blue" || primaryTheme === "BVRT" || primaryTheme === "Gum" || primaryTheme === "Sand");
         var extraDarkToken = hasExtraDark ? (primaryTheme + " - Extra Dark") : (primaryTheme + " - Black");
-        
-        var baseData = { 
+
+        var baseData = {
             themeName: primaryTheme,
             themeWhiteColor: primaryTheme + " - White",
             themeExtraDarkColor: extraDarkToken
-        }; 
+        };
 
         if (isReverse) {
-            baseData.primaryTextColor = "Paper"; 
-            baseData.primaryHeadingColor = "Paper"; 
-            baseData.secondaryHeadingColor = primaryTheme + " - Extra Light"; 
-            baseData.accentColor = primaryTheme + " - Light"; 
-            baseData.subtleStrokeColor = "Neutral - Dark"; 
-            baseData.frameFillColor = extraDarkToken; 
-            baseData.tableBodyHorizontalBorderColor = "Paper"; 
+            // Dark Mode Cascade: Inverts text to Paper and fills to dark tones
+            baseData.primaryTextColor = "Paper";
+            baseData.primaryHeadingColor = "Paper";
+            baseData.secondaryHeadingColor = primaryTheme + " - Extra Light";
+            baseData.accentColor = primaryTheme + " - Light";
+            baseData.subtleStrokeColor = "Neutral - Dark";
+            baseData.frameFillColor = extraDarkToken;
+            baseData.tableBodyHorizontalBorderColor = "Paper";
             baseData.tableBodyVerticalBorderColor = baseData.themeWhiteColor;
-            baseData.tableHeaderBG = baseData.themeWhiteColor; 
-            baseData.tableHeaderText = extraDarkToken; 
+            baseData.tableHeaderBG = baseData.themeWhiteColor;
+            baseData.tableHeaderText = extraDarkToken;
             baseData.tableZebraColor = primaryTheme + " - Black";
         } else {
-            baseData.primaryTextColor = "Neutral - Extra Dark"; 
-            baseData.primaryHeadingColor = primaryTheme + " - Medium"; 
-            baseData.secondaryHeadingColor = extraDarkToken; 
-            baseData.accentColor = primaryTheme + " - Medium"; 
-            baseData.subtleStrokeColor = "Neutral - Light"; 
-            baseData.frameFillColor = primaryTheme + " - Extra Light"; 
-            baseData.tableHeaderBG = primaryTheme + " - Medium"; 
-            baseData.tableHeaderText = "Neutral - White"; 
-            baseData.tableBodyHorizontalBorderColor = "Neutral - Medium"; 
+            // Standard Light Mode: Dark text on light background
+            baseData.primaryTextColor = "Neutral - Extra Dark";
+            baseData.primaryHeadingColor = primaryTheme + " - Medium";
+            baseData.secondaryHeadingColor = extraDarkToken;
+            baseData.accentColor = primaryTheme + " - Medium";
+            baseData.subtleStrokeColor = "Neutral - Light";
+            baseData.frameFillColor = primaryTheme + " - Extra Light";
+            baseData.tableHeaderBG = primaryTheme + " - Medium";
+            baseData.tableHeaderText = "Neutral - White";
+            baseData.tableBodyHorizontalBorderColor = "Neutral - Medium";
             baseData.tableBodyVerticalBorderColor = "Neutral - Light";
             baseData.tableZebraColor = "Neutral - Extra Light";
         }
@@ -55,72 +77,144 @@ var StyleBuilder = {
     // =========================================================================
     // 2. OBJECT STYLES
     // =========================================================================
+
+    /**
+     * Builds declarative InDesign Object Style descriptors covering rounded containers,
+     * text frame insets, column layouts, and QGDS compound components (Callouts, Cards, Banners).
+     *
+     * @param {Object} theme - Mapped theme colors from getThemeColors().
+     * @param {Object} typo - Typography parameters (baseFontSize, baseStroke, etc.).
+     * @returns {Array<Object>} Array of object style descriptor objects.
+     */
     objectStyleDefinitions: function(theme, typo) {
         var cfg = (typeof config !== "undefined") ? config : {};
         var ref = (cfg.typographyMatrix && cfg.typographyMatrix.universalReferencePt) ? cfg.typographyMatrix.universalReferencePt : 12;
-        var layoutTokens = (cfg.designTokens && cfg.designTokens.layout) ? cfg.designTokens.layout : { cornerRadiusLargeMm: 8, cornerRadiusMediumMm: 4, cornerRadiusSmallMm: 2, spacingBaseMm: 4 };
+        var layoutTokens = (cfg.designTokens && cfg.designTokens.layout)
+            ? cfg.designTokens.layout
+            : { cornerRadiusLargeMm: 8, cornerRadiusMediumMm: 4, cornerRadiusSmallMm: 2, spacingBaseMm: 4 };
 
         var rLarge = sysUtils.scaleMm(layoutTokens.cornerRadiusLargeMm, typo.baseFontSize, ref);
         var rMedium = sysUtils.scaleMm(layoutTokens.cornerRadiusMediumMm, typo.baseFontSize, ref);
         var rSmall = sysUtils.scaleMm(layoutTokens.cornerRadiusSmallMm, typo.baseFontSize, ref);
 
+        /**
+         * Helper constructing InDesign CornerOption geometry properties.
+         */
         function buildCorners(tl, tr, bl, br, fillColor, radius) {
             return {
-                enableFill: true, fillColor: fillColor, enableStroke: false, strokeWeight: 0,
+                enableFill: true,
+                fillColor: fillColor,
+                enableStroke: false,
+                strokeWeight: 0,
                 topLeftCornerOption: tl ? CornerOptions.ROUNDED_CORNER : CornerOptions.NONE,
                 topRightCornerOption: tr ? CornerOptions.ROUNDED_CORNER : CornerOptions.NONE,
                 bottomLeftCornerOption: bl ? CornerOptions.ROUNDED_CORNER : CornerOptions.NONE,
                 bottomRightCornerOption: br ? CornerOptions.ROUNDED_CORNER : CornerOptions.NONE,
-                topLeftCornerRadius: tl ? radius : "0mm", topRightCornerRadius: tr ? radius : "0mm",
-                bottomLeftCornerRadius: bl ? radius : "0mm", bottomRightCornerRadius: br ? radius : "0mm"
+                topLeftCornerRadius: tl ? radius : "0mm",
+                topRightCornerRadius: tr ? radius : "0mm",
+                bottomLeftCornerRadius: bl ? radius : "0mm",
+                bottomRightCornerRadius: br ? radius : "0mm"
             };
         }
 
-        var baseStyles = [{ name: "Frame - Basic", properties: { enableFill: true, fillColor: theme.frameFillColor, enableStroke: true, strokeColor: theme.accentColor, strokeWeight: typo.baseStroke } }];
+        var baseStyles = [{
+            name: "Frame - Basic",
+            properties: {
+                enableFill: true,
+                fillColor: theme.frameFillColor,
+                enableStroke: true,
+                strokeColor: theme.accentColor,
+                strokeWeight: typo.baseStroke
+            }
+        }];
 
         var permutations = (cfg.styles && cfg.styles.object && cfg.styles.object.permutations) ? cfg.styles.object.permutations : [
-            { suffix: "Top Left", tl: true, tr: false, bl: false, br: false }, { suffix: "Top Right", tl: false, tr: true, bl: false, br: false },
-            { suffix: "Bottom Left", tl: false, tr: false, bl: true, br: false }, { suffix: "Bottom Right", tl: false, tr: false, bl: false, br: true },
-            { suffix: "Top", tl: true, tr: true, bl: false, br: false }, { suffix: "Bottom", tl: false, tr: false, bl: true, br: true }, 
-            { suffix: "Left", tl: true, tr: false, bl: true, br: false }, { suffix: "Right", tl: false, tr: true, bl: false, br: true },
+            { suffix: "Top Left", tl: true, tr: false, bl: false, br: false },
+            { suffix: "Top Right", tl: false, tr: true, bl: false, br: false },
+            { suffix: "Bottom Left", tl: false, tr: false, bl: true, br: false },
+            { suffix: "Bottom Right", tl: false, tr: false, bl: false, br: true },
+            { suffix: "Top", tl: true, tr: true, bl: false, br: false },
+            { suffix: "Bottom", tl: false, tr: false, bl: true, br: true },
+            { suffix: "Left", tl: true, tr: false, bl: true, br: false },
+            { suffix: "Right", tl: false, tr: true, bl: false, br: true },
             { suffix: "All Corners", tl: true, tr: true, bl: true, br: true }
         ];
 
-        var sizeMatrix = [ { folder: "Frames - Radius Large", radius: rLarge }, { folder: "Frames - Radius Medium", radius: rMedium }, { folder: "Frames - Radius Small", radius: rSmall } ];
+        var sizeMatrix = [
+            { folder: "Frames - Radius Large", radius: rLarge },
+            { folder: "Frames - Radius Medium", radius: rMedium },
+            { folder: "Frames - Radius Small", radius: rSmall }
+        ];
+
         var colorMatrix = [
-            { label: "White", value: theme.themeWhiteColor }, { label: "Medium", value: theme.themeName + " - Medium" },
-            { label: "Dark", value: theme.themeName + " - Dark" }, { label: "Extra Dark", value: theme.themeExtraDarkColor }, 
-            { label: "Paper", value: "Paper" }, { label: "Neutral Light", value: "Neutral - Extra Light" }
+            { label: "White", value: theme.themeWhiteColor },
+            { label: "Medium", value: theme.themeName + " - Medium" },
+            { label: "Dark", value: theme.themeName + " - Dark" },
+            { label: "Extra Dark", value: theme.themeExtraDarkColor },
+            { label: "Paper", value: "Paper" },
+            { label: "Neutral Light", value: "Neutral - Extra Light" }
         ];
 
         for (var c = 0; c < colorMatrix.length; c++) {
             for (var s = 0; s < sizeMatrix.length; s++) {
                 for (var p = 0; p < permutations.length; p++) {
-                    baseStyles.push({ group: sizeMatrix[s].folder, name: colorMatrix[c].label + " - Rounded " + permutations[p].suffix, properties: buildCorners(permutations[p].tl, permutations[p].tr, permutations[p].bl, permutations[p].br, colorMatrix[c].value, sizeMatrix[s].radius) });
+                    baseStyles.push({
+                        group: sizeMatrix[s].folder,
+                        name: colorMatrix[c].label + " - Rounded " + permutations[p].suffix,
+                        properties: buildCorners(permutations[p].tl, permutations[p].tr, permutations[p].bl, permutations[p].br, colorMatrix[c].value, sizeMatrix[s].radius)
+                    });
                 }
             }
         }
 
         var spaceBase = layoutTokens.spacingBaseMm;
-        function scaleSpc(multiplier) { return sysUtils.scaleMm(spaceBase * multiplier, typo.baseFontSize, ref); }
-        
+        function scaleSpc(multiplier) {
+            return sysUtils.scaleMm(spaceBase * multiplier, typo.baseFontSize, ref);
+        }
+
+        // Text Frame Inset Spacing Permutations
         var insetPermutations = (cfg.styles && cfg.styles.object && cfg.styles.object.insets) ? cfg.styles.object.insets : [];
         for (var ins = 0; ins < insetPermutations.length; ins++) {
             baseStyles.push({
-                group: "Text Frame Insets", name: insetPermutations[ins].name,
-                properties: { enableFill: false, enableStroke: false, enableParagraphStyle: false, enableTextFrameGeneralOptions: true, textFramePreferences: { insetSpacing: [scaleSpc(insetPermutations[ins].t), scaleSpc(insetPermutations[ins].l), scaleSpc(insetPermutations[ins].b), scaleSpc(insetPermutations[ins].r)] } }
+                group: "Text Frame Insets",
+                name: insetPermutations[ins].name,
+                properties: {
+                    enableFill: false,
+                    enableStroke: false,
+                    enableParagraphStyle: false,
+                    enableTextFrameGeneralOptions: true,
+                    textFramePreferences: {
+                        insetSpacing: [
+                            scaleSpc(insetPermutations[ins].t),
+                            scaleSpc(insetPermutations[ins].l),
+                            scaleSpc(insetPermutations[ins].b),
+                            scaleSpc(insetPermutations[ins].r)
+                        ]
+                    }
+                }
             });
         }
 
+        // Multi-Column Text Frame Permutations
         var columnPermutations = (cfg.styles && cfg.styles.object && cfg.styles.object.columns) ? cfg.styles.object.columns : [];
         for (var colIdx = 0; colIdx < columnPermutations.length; colIdx++) {
             baseStyles.push({
-                group: "Text Frame Columns", name: columnPermutations[colIdx].name,
-                properties: { enableFill: false, enableStroke: false, enableParagraphStyle: false, enableTextFrameGeneralOptions: true, textFramePreferences: { textColumnCount: columnPermutations[colIdx].cols, textColumnGutter: sysUtils.scaleMm(columnPermutations[colIdx].gutter, typo.baseFontSize, ref) } }
+                group: "Text Frame Columns",
+                name: columnPermutations[colIdx].name,
+                properties: {
+                    enableFill: false,
+                    enableStroke: false,
+                    enableParagraphStyle: false,
+                    enableTextFrameGeneralOptions: true,
+                    textFramePreferences: {
+                        textColumnCount: columnPermutations[colIdx].cols,
+                        textColumnGutter: sysUtils.scaleMm(columnPermutations[colIdx].gutter, typo.baseFontSize, ref)
+                    }
+                }
             });
         }
 
-        // QGDS Compound Component Object Styles
+        // QGDS Callout Component Object Styles
         var qgdsCallouts = (cfg.styles && cfg.styles.object && cfg.styles.object.qgdsCallouts) ? cfg.styles.object.qgdsCallouts : [];
         for (var qc = 0; qc < qgdsCallouts.length; qc++) {
             var cDef = qgdsCallouts[qc];
@@ -130,14 +224,24 @@ var StyleBuilder = {
                 name: cDef.name,
                 group: cDef.group,
                 properties: {
-                    enableFill: true, fillColor: fColor, enableStroke: true, strokeColor: sColor, strokeWeight: typo.baseStroke,
-                    topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER,
-                    bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER,
-                    topLeftCornerRadius: rSmall, topRightCornerRadius: rSmall, bottomLeftCornerRadius: rSmall, bottomRightCornerRadius: rSmall
+                    enableFill: true,
+                    fillColor: fColor,
+                    enableStroke: true,
+                    strokeColor: sColor,
+                    strokeWeight: typo.baseStroke,
+                    topLeftCornerOption: CornerOptions.ROUNDED_CORNER,
+                    topRightCornerOption: CornerOptions.ROUNDED_CORNER,
+                    bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER,
+                    bottomRightCornerOption: CornerOptions.ROUNDED_CORNER,
+                    topLeftCornerRadius: rSmall,
+                    topRightCornerRadius: rSmall,
+                    bottomLeftCornerRadius: rSmall,
+                    bottomRightCornerRadius: rSmall
                 }
             });
         }
 
+        // QGDS Card Component Object Styles
         var qgdsCards = (cfg.styles && cfg.styles.object && cfg.styles.object.qgdsCards) ? cfg.styles.object.qgdsCards : [];
         for (var qk = 0; qk < qgdsCards.length; qk++) {
             var kDef = qgdsCards[qk];
@@ -148,14 +252,24 @@ var StyleBuilder = {
                 name: kDef.name,
                 group: kDef.group,
                 properties: {
-                    enableFill: true, fillColor: kFill, enableStroke: true, strokeColor: kStroke, strokeWeight: typo.baseStroke,
-                    topLeftCornerOption: CornerOptions.ROUNDED_CORNER, topRightCornerOption: CornerOptions.ROUNDED_CORNER,
-                    bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER, bottomRightCornerOption: CornerOptions.ROUNDED_CORNER,
-                    topLeftCornerRadius: kRadius, topRightCornerRadius: kRadius, bottomLeftCornerRadius: kRadius, bottomRightCornerRadius: kRadius
+                    enableFill: true,
+                    fillColor: kFill,
+                    enableStroke: true,
+                    strokeColor: kStroke,
+                    strokeWeight: typo.baseStroke,
+                    topLeftCornerOption: CornerOptions.ROUNDED_CORNER,
+                    topRightCornerOption: CornerOptions.ROUNDED_CORNER,
+                    bottomLeftCornerOption: CornerOptions.ROUNDED_CORNER,
+                    bottomRightCornerOption: CornerOptions.ROUNDED_CORNER,
+                    topLeftCornerRadius: kRadius,
+                    topRightCornerRadius: kRadius,
+                    bottomLeftCornerRadius: kRadius,
+                    bottomRightCornerRadius: kRadius
                 }
             });
         }
 
+        // QGDS Banner Component Object Styles
         var qgdsBanners = (cfg.styles && cfg.styles.object && cfg.styles.object.qgdsBanners) ? cfg.styles.object.qgdsBanners : [];
         for (var qb = 0; qb < qgdsBanners.length; qb++) {
             var bDef = qgdsBanners[qb];
@@ -163,7 +277,12 @@ var StyleBuilder = {
             baseStyles.push({
                 name: bDef.name,
                 group: bDef.group,
-                properties: { enableFill: true, fillColor: bFill, enableStroke: false, strokeWeight: 0 }
+                properties: {
+                    enableFill: true,
+                    fillColor: bFill,
+                    enableStroke: false,
+                    strokeWeight: 0
+                }
             });
         }
 
@@ -171,24 +290,34 @@ var StyleBuilder = {
     },
 
     // =========================================================================
-    // 3. TYPOGRAPHY STYLES
+    // 3. TYPOGRAPHY: CHARACTER STYLES
     // =========================================================================
+
+    /**
+     * Builds declarative Character Style descriptors with semantic HTML exportTagMaps.
+     *
+     * @param {Object} typo - Typography parameters.
+     * @param {Object} theme - Mapped theme colors.
+     * @param {String} [suffix=""] - Optional style name suffix (e.g. "Reverse").
+     * @returns {Array<Object>} Array of character style descriptor objects.
+     */
     characterStyleDefinitions: function(typo, theme, suffix) {
         var cfg = (typeof config !== "undefined") ? config : {};
         var sfx = suffix ? " " + suffix : "";
-        function n(name) { return name + sfx; } 
+        function n(name) { return name + sfx; }
         var isReverse = (suffix !== "");
         function nGroup(grp) { return isReverse ? ("Reverse / " + grp) : grp; }
 
-        var ts = (cfg.designTokens && cfg.designTokens.character) ? cfg.designTokens.character : { iconBaselineShiftRatio: -5/12, underlineThinRatio: 0.5 };
-        var baseSize = typo.baseFontSize; 
+        var ts = (cfg.designTokens && cfg.designTokens.character)
+            ? cfg.designTokens.character
+            : { iconBaselineShiftRatio: -5/12, underlineThinRatio: 0.5 };
+        var baseSize = typo.baseFontSize;
         var smallScale = (cfg.typographyMatrix && cfg.typographyMatrix.small) ? cfg.typographyMatrix.small.scale : -0.8;
         var smallSize = Math.round(baseSize * Math.pow(typo.scaleRatio, smallScale));
-        var standardShift = Math.round(baseSize * ts.iconBaselineShiftRatio) + "pt"; 
-        var smallShift = Math.round(smallSize * ts.iconBaselineShiftRatio) + "pt"; 
+        var standardShift = Math.round(baseSize * ts.iconBaselineShiftRatio) + "pt";
+        var smallShift = Math.round(smallSize * ts.iconBaselineShiftRatio) + "pt";
         var fullStroke = typo.baseStroke;
         var halfStroke = (parseFloat(typo.baseStroke) * ts.underlineThinRatio) + "pt";
-        var accentColor = isReverse ? "Neutral - White" : theme.accentColor;
 
         var charDefs = (cfg.styles && cfg.styles.character) ? cfg.styles.character : [];
         var styles = [];
@@ -235,17 +364,32 @@ var StyleBuilder = {
 
         return styles;
     },
-    
+
+    // =========================================================================
+    // 4. TYPOGRAPHY: PARAGRAPH STYLES
+    // =========================================================================
+
+    /**
+     * Builds declarative Paragraph Style descriptors covering headings (H1–H6),
+     * body variants, multi-level ordered/bulleted lists, blockquotes, and QGDS components.
+     *
+     * @param {Object} typo - Typography parameters.
+     * @param {Object} theme - Mapped theme colors.
+     * @param {String} [suffix=""] - Optional style name suffix (e.g. "Reverse").
+     * @returns {Array<Object>} Array of paragraph style descriptor objects.
+     */
     paragraphStyleDefinitions: function(typo, theme, suffix) {
         var cfg = (typeof config !== "undefined") ? config : {};
         var sfx = suffix ? " " + suffix : "";
-        function n(name) { return name + sfx; } 
+        function n(name) { return name + sfx; }
         var isReverse = (suffix !== "");
         function nGroup(grp) { return isReverse ? ("Reverse / " + grp) : grp; }
 
         var PT_TO_MM = cfg.PT_TO_MM || 0.352778;
         var tMat = (cfg.typographyMatrix) ? cfg.typographyMatrix : { universalReferencePt: 12, small: { scale: -0.8 } };
-        var dt = (cfg.designTokens && cfg.designTokens.list) ? cfg.designTokens.list : { iconWidthMm: 7, iconGapMm: 2, bulletIndentRatio: 1.0, numberIndentRatio: 1.75, spaceRatio: 0.75 };
+        var dt = (cfg.designTokens && cfg.designTokens.list)
+            ? cfg.designTokens.list
+            : { iconWidthMm: 7, iconGapMm: 2, bulletIndentRatio: 1.0, numberIndentRatio: 1.75, spaceRatio: 0.75 };
 
         function calc(scalePower, leadingRatio) {
             return sysUtils.calcType(scalePower, leadingRatio || typo.baseLeadingRatio, typo.baseFontSize, typo.scaleRatio);
@@ -256,23 +400,24 @@ var StyleBuilder = {
         }
 
         var bulletBaseIndent = sysUtils.scaleMm(typo.baseFontSize * dt.bulletIndentRatio * PT_TO_MM, typo.baseFontSize, typo.baseFontSize);
-        var numberBaseIndent = sysUtils.scaleMm(typo.baseFontSize * dt.numberIndentRatio * PT_TO_MM, typo.baseFontSize, typo.baseFontSize);
-        
-        var baselineTotalIndent = dt.iconWidthMm + dt.iconGapMm; 
+        var baselineTotalIndent = dt.iconWidthMm + dt.iconGapMm;
         var dynamicIconIndent = sysUtils.scaleMm(baselineTotalIndent, typo.baseFontSize, tMat.universalReferencePt || 12);
-        
-        var smallSizePt = Math.round(typo.baseFontSize * Math.pow(typo.scaleRatio, tMat.small.scale)); 
+
+        var smallSizePt = Math.round(typo.baseFontSize * Math.pow(typo.scaleRatio, tMat.small.scale));
         var dynamicIconSmallIndent = sysUtils.scaleMm(baselineTotalIndent, smallSizePt, tMat.universalReferencePt || 12);
-        
+
         var listSpaceBeforeMm = typo.baseLeadingInPt * dt.spaceRatio * PT_TO_MM;
         var listSpaceBefore = (Math.round(listSpaceBeforeMm * 4) / 4) + "mm";
-        var listSpaceBetween = (Math.round((listSpaceBeforeMm / 2) * 4) / 4) + "mm"; 
+        var listSpaceBetween = (Math.round((listSpaceBeforeMm / 2) * 4) / 4) + "mm";
 
         var smallLeadingPt = Math.round(smallSizePt * (typo.baseLeadingRatio || 1.25));
         var smallListSpaceBeforeMm = smallLeadingPt * dt.spaceRatio * PT_TO_MM;
         var smallListSpaceBefore = (Math.round(smallListSpaceBeforeMm * 4) / 4) + "mm";
         var smallListSpaceBetween = (Math.round((smallListSpaceBeforeMm / 2) * 4) / 4) + "mm";
 
+        /**
+         * Builds multi-level nested list styles (levels 1 through maxLevel) with proper basedOn inheritance.
+         */
         function buildListStyles(baseStyleName, baseProps, indentValue, maxLevel) {
             var isNumbered = (baseProps.bulletsAndNumberingListType === ListType.NUMBERED_LIST);
             var listStyles = [];
@@ -308,15 +453,23 @@ var StyleBuilder = {
         var paraDefs = (cfg.styles && cfg.styles.paragraph) ? cfg.styles.paragraph : [];
         var styles = [];
 
-        for (var i = 0; i < paraDefs.length; i++) {
-            var def = paraDefs[i];
+        for (var pIdx = 0; pIdx < paraDefs.length; pIdx++) {
+            var def = paraDefs[pIdx];
 
-            // Insert lists after Heading 4 (index 13 in declarative schema)
-            if (i === 13) {
+            // Insert multi-level lists after Heading 4 (position 13 in declarative schema)
+            if (pIdx === 13) {
                 var bullets = buildListStyles("List Bullet", { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, bulletsAndNumberingListType: ListType.BULLET_LIST }, bulletBaseIndent, 3);
                 for (var b = 0; b < bullets.length; b++) styles.push(bullets[b]);
 
-                var numbers = buildListStyles("List Number", { basedOn: n("Paragraph"), fillColor: theme.primaryTextColor, bulletsAndNumberingListType: ListType.NUMBERED_LIST, numberingList: "Scripted Numbered List", numberingFormat: "^#.^t", firstLineIndent: "-" + dynamicIconIndent, tabList: [{ alignment: TabStopAlignment.LEFT_ALIGN, position: dynamicIconIndent }] }, dynamicIconIndent, 3);
+                var numbers = buildListStyles("List Number", {
+                    basedOn: n("Paragraph"),
+                    fillColor: theme.primaryTextColor,
+                    bulletsAndNumberingListType: ListType.NUMBERED_LIST,
+                    numberingList: "Scripted Numbered List",
+                    numberingFormat: "^#.^t",
+                    firstLineIndent: "-" + dynamicIconIndent,
+                    tabList: [{ alignment: TabStopAlignment.LEFT_ALIGN, position: dynamicIconIndent }]
+                }, dynamicIconIndent, 3);
                 for (var nIdx = 0; nIdx < numbers.length; nIdx++) styles.push(numbers[nIdx]);
             }
 
@@ -420,28 +573,122 @@ var StyleBuilder = {
     },
 
     // =========================================================================
-    // 4. TABLE STYLES
+    // 5. TABLE & CELL STYLES
     // =========================================================================
+
+    /**
+     * Builds declarative Cell Style descriptors covering headers, body cells,
+     * and QGDS RowHeader / Numeric column variations.
+     *
+     * @param {Object} theme - Mapped theme colors.
+     * @param {Object} typo - Typography parameters.
+     * @param {String} [suffix=""] - Optional style name suffix (e.g. "Reverse").
+     * @returns {Array<Object>} Array of cell style descriptor objects.
+     */
     cellStyleDefinitions: function(theme, typo, suffix) {
         var cfg = (typeof config !== "undefined") ? config : {};
         var sfx = suffix ? " " + suffix : "";
         function n(name) { return name + sfx; }
         var isReverse = (suffix !== "");
         var PT_TO_MM = cfg.PT_TO_MM || 0.352778;
-        var dtTable = (cfg.designTokens && cfg.designTokens.table) ? cfg.designTokens.table : { cellPaddingRatio: 0.4, borderWeightRatio: 0.75, borderThickWeightRatio: 1.5 };
+        var dtTable = (cfg.designTokens && cfg.designTokens.table)
+            ? cfg.designTokens.table
+            : { cellPaddingRatio: 0.4, borderWeightRatio: 0.75, borderThickWeightRatio: 1.5 };
 
         var padV = (Math.round((typo.baseLeadingInPt * dtTable.cellPaddingRatio * PT_TO_MM) * 4) / 4) + "mm";
         var weight = (parseFloat(typo.baseStroke) * dtTable.borderWeightRatio) + "pt";
         var thickWeight = (parseFloat(typo.baseStroke) * dtTable.borderThickWeightRatio) + "pt";
 
         var styles = [
-            { name: n("Cell - Body"), properties: { appliedParagraphStyle: n("Paragraph No Spacing"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: weight, bottomEdgeStrokeColor: theme.tableBodyHorizontalBorderColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: weight, leftEdgeStrokeColor: theme.tableBodyVerticalBorderColor, rightEdgeStrokeWeight: weight, rightEdgeStrokeColor: theme.tableBodyVerticalBorderColor } },
-            { name: n("Cell - Header Solid"), properties: { appliedParagraphStyle: n("Cell - Header Text Solid"), fillColor: theme.tableHeaderBG, topInset: padV, bottomInset: padV, topEdgeStrokeWeight: typo.baseStroke, topEdgeStrokeColor: theme.tableHeaderBG, bottomEdgeStrokeWeight: 0, bottomEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } },
-            { name: n("Cell - Header Clean"), properties: { appliedParagraphStyle: n("Cell - Header Text Clean"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: thickWeight, bottomEdgeStrokeColor: theme.primaryHeadingColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } },
-            { group: isReverse ? "Reverse / Table" : "QGDS / Table", name: n("QGDS / Table / RowHeader"), properties: { appliedParagraphStyle: n("Cell - Header Text Clean"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: thickWeight, bottomEdgeStrokeColor: theme.primaryHeadingColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } },
-            { group: isReverse ? "Reverse / Table" : "QGDS / Table", name: n("QGDS / Table / Numeric"), properties: { appliedParagraphStyle: n("Paragraph No Spacing"), fillColor: "None", topInset: padV, bottomInset: padV, bottomEdgeStrokeWeight: weight, bottomEdgeStrokeColor: theme.tableBodyHorizontalBorderColor, topEdgeStrokeWeight: 0, topEdgeStrokeColor: "None", leftEdgeStrokeWeight: 0, leftEdgeStrokeColor: "None", rightEdgeStrokeWeight: 0, rightEdgeStrokeColor: "None" } }
+            {
+                name: n("Cell - Body"),
+                properties: {
+                    appliedParagraphStyle: n("Paragraph No Spacing"),
+                    fillColor: "None",
+                    topInset: padV,
+                    bottomInset: padV,
+                    bottomEdgeStrokeWeight: weight,
+                    bottomEdgeStrokeColor: theme.tableBodyHorizontalBorderColor,
+                    topEdgeStrokeWeight: 0,
+                    topEdgeStrokeColor: "None",
+                    leftEdgeStrokeWeight: weight,
+                    leftEdgeStrokeColor: theme.tableBodyVerticalBorderColor,
+                    rightEdgeStrokeWeight: weight,
+                    rightEdgeStrokeColor: theme.tableBodyVerticalBorderColor
+                }
+            },
+            {
+                name: n("Cell - Header Solid"),
+                properties: {
+                    appliedParagraphStyle: n("Cell - Header Text Solid"),
+                    fillColor: theme.tableHeaderBG,
+                    topInset: padV,
+                    bottomInset: padV,
+                    topEdgeStrokeWeight: typo.baseStroke,
+                    topEdgeStrokeColor: theme.tableHeaderBG,
+                    bottomEdgeStrokeWeight: 0,
+                    bottomEdgeStrokeColor: "None",
+                    leftEdgeStrokeWeight: 0,
+                    leftEdgeStrokeColor: "None",
+                    rightEdgeStrokeWeight: 0,
+                    rightEdgeStrokeColor: "None"
+                }
+            },
+            {
+                name: n("Cell - Header Clean"),
+                properties: {
+                    appliedParagraphStyle: n("Cell - Header Text Clean"),
+                    fillColor: "None",
+                    topInset: padV,
+                    bottomInset: padV,
+                    bottomEdgeStrokeWeight: thickWeight,
+                    bottomEdgeStrokeColor: theme.primaryHeadingColor,
+                    topEdgeStrokeWeight: 0,
+                    topEdgeStrokeColor: "None",
+                    leftEdgeStrokeWeight: 0,
+                    leftEdgeStrokeColor: "None",
+                    rightEdgeStrokeWeight: 0,
+                    rightEdgeStrokeColor: "None"
+                }
+            },
+            {
+                group: isReverse ? "Reverse / Table" : "QGDS / Table",
+                name: n("QGDS / Table / RowHeader"),
+                properties: {
+                    appliedParagraphStyle: n("Cell - Header Text Clean"),
+                    fillColor: "None",
+                    topInset: padV,
+                    bottomInset: padV,
+                    bottomEdgeStrokeWeight: thickWeight,
+                    bottomEdgeStrokeColor: theme.primaryHeadingColor,
+                    topEdgeStrokeWeight: 0,
+                    topEdgeStrokeColor: "None",
+                    leftEdgeStrokeWeight: 0,
+                    leftEdgeStrokeColor: "None",
+                    rightEdgeStrokeWeight: 0,
+                    rightEdgeStrokeColor: "None"
+                }
+            },
+            {
+                group: isReverse ? "Reverse / Table" : "QGDS / Table",
+                name: n("QGDS / Table / Numeric"),
+                properties: {
+                    appliedParagraphStyle: n("Paragraph No Spacing"),
+                    fillColor: "None",
+                    topInset: padV,
+                    bottomInset: padV,
+                    bottomEdgeStrokeWeight: weight,
+                    bottomEdgeStrokeColor: theme.tableBodyHorizontalBorderColor,
+                    topEdgeStrokeWeight: 0,
+                    topEdgeStrokeColor: "None",
+                    leftEdgeStrokeWeight: 0,
+                    leftEdgeStrokeColor: "None",
+                    rightEdgeStrokeWeight: 0,
+                    rightEdgeStrokeColor: "None"
+                }
+            }
         ];
-        
+
         if (isReverse) {
             for (var i = 0; i < styles.length; i++) {
                 if (!styles[i].group) styles[i].group = "Reverse";
@@ -450,6 +697,14 @@ var StyleBuilder = {
         return styles;
     },
 
+    /**
+     * Builds declarative Table Style descriptors with alternating zebra rows.
+     *
+     * @param {Object} theme - Mapped theme colors.
+     * @param {Object} typo - Typography parameters.
+     * @param {String} [suffix=""] - Optional style name suffix (e.g. "Reverse").
+     * @returns {Array<Object>} Array of table style descriptor objects.
+     */
     tableStyleDefinitions: function(theme, typo, suffix) {
         var cfg = (typeof config !== "undefined") ? config : {};
         var sfx = suffix ? " " + suffix : "";
@@ -458,7 +713,7 @@ var StyleBuilder = {
         var PT_TO_MM = cfg.PT_TO_MM || 0.352778;
         var dtTable = (cfg.designTokens && cfg.designTokens.table) ? cfg.designTokens.table : { spaceBeforeRatio: 0.5 };
         var tableSpaceBefore = (Math.round((typo.baseFontSize * dtTable.spaceBeforeRatio * PT_TO_MM) * 4) / 4) + "mm";
-        
+
         var zebraProps = {
             alternatingFills: AlternatingFillsTypes.ALTERNATING_ROWS,
             firstAlternatingFillColor: theme.tableZebraColor,
@@ -467,12 +722,44 @@ var StyleBuilder = {
         };
 
         var styles = [
-            { name: n("Table - Solid Header"), properties: sysUtils.merge({ headerRegionCellStyle: n("Cell - Header Solid"), bodyRegionCellStyle: n("Cell - Body"), topBorderStrokeWeight: 0, topBorderStrokeColor: "None", bottomBorderStrokeWeight: 0, bottomBorderStrokeColor: "None", leftBorderStrokeWeight: 0, leftBorderStrokeColor: "None", rightBorderStrokeWeight: 0, rightBorderStrokeColor: "None", spaceBefore: tableSpaceBefore }, zebraProps) },
-            { name: n("Table - Clean Header"), properties: sysUtils.merge({ headerRegionCellStyle: n("Cell - Header Clean"), bodyRegionCellStyle: n("Cell - Body"), topBorderStrokeWeight: 0, topBorderStrokeColor: "None", bottomBorderStrokeWeight: 0, bottomBorderStrokeColor: "None", leftBorderStrokeWeight: 0, leftBorderStrokeColor: "None", rightBorderStrokeWeight: 0, rightBorderStrokeColor: "None", spaceBefore: tableSpaceBefore }, zebraProps) }
+            {
+                name: n("Table - Solid Header"),
+                properties: sysUtils.merge({
+                    headerRegionCellStyle: n("Cell - Header Solid"),
+                    bodyRegionCellStyle: n("Cell - Body"),
+                    topBorderStrokeWeight: 0,
+                    topBorderStrokeColor: "None",
+                    bottomBorderStrokeWeight: 0,
+                    bottomBorderStrokeColor: "None",
+                    leftBorderStrokeWeight: 0,
+                    leftBorderStrokeColor: "None",
+                    rightBorderStrokeWeight: 0,
+                    rightBorderStrokeColor: "None",
+                    spaceBefore: tableSpaceBefore
+                }, zebraProps)
+            },
+            {
+                name: n("Table - Clean Header"),
+                properties: sysUtils.merge({
+                    headerRegionCellStyle: n("Cell - Header Clean"),
+                    bodyRegionCellStyle: n("Cell - Body"),
+                    topBorderStrokeWeight: 0,
+                    topBorderStrokeColor: "None",
+                    bottomBorderStrokeWeight: 0,
+                    bottomBorderStrokeColor: "None",
+                    leftBorderStrokeWeight: 0,
+                    leftBorderStrokeColor: "None",
+                    rightBorderStrokeWeight: 0,
+                    rightBorderStrokeColor: "None",
+                    spaceBefore: tableSpaceBefore
+                }, zebraProps)
+            }
         ];
-        
+
         if (isReverse) {
-            for (var i = 0; i < styles.length; i++) { styles[i].group = "Reverse"; }
+            for (var i = 0; i < styles.length; i++) {
+                styles[i].group = "Reverse";
+            }
         }
         return styles;
     }

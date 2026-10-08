@@ -1,20 +1,63 @@
 /* --- MODULE CONTRACT: 01-config.jsxinc ---
-Purpose: Central runtime configuration and calibration constants.
+Purpose: Central runtime configuration, system constants, and dynamic design token containers.
 Public entry points: config.
-Side effects: None.
+Inputs: None (static declarations, dynamic token arrays hydrated at runtime).
+Outputs: Runtime configuration dictionary object.
+Required dependencies: None (self-contained foundation module).
+Side effects: None (pure configuration dictionary).
+Compatibility: ExtendScript ES3 (Adobe InDesign CS6 through CC 2026+).
 -------------------------------------------------- */
+
+/**
+ * @file 01-config.jsxinc
+ * @package InDesign Brand System — Queensland Government Design System (QGDS)
+ * @version 2.4.0
+ * @author Queensland Government Publishing & Design Engineering
+ * @description Central runtime configuration, system constants, and dynamic
+ * design token containers. Acts as the in-memory state repository for all visual
+ * tokens, formats, layers, assets, and styling matrices.
+ *
+ * Hydration Lifecycle:
+ * - Populated with system constants at initialization.
+ * - Dynamic token arrays and objects (pageMatrix, layerMatrix, typographyMatrix,
+ *   designTokens, colors, gradients, styles) are hydrated at runtime by
+ *   modules/03-token-loader.jsxinc from brand-tokens.json or embedded bundles.
+ */
+
 
 var config = {
     // =========================================================================
     // 1. SYSTEM CALIBRATION & RUNTIME CONSTANTS
     // =========================================================================
+
+    /**
+     * Mathematical conversion ratio from Points (pt) to Millimeters (mm).
+     * 1 inch = 72 pt = 25.4 mm; 25.4 / 72 = 0.3527777778 mm/pt.
+     * @type {Number}
+     */
     PT_TO_MM: 0.352778,
+
+    /**
+     * Cache version identifier auditing format template parity.
+     * Invalidated whenever breaking changes occur in brand-tokens.json.
+     * @type {String}
+     */
     CACHE_VERSION: "2.4.0",
+
+    /**
+     * Source of active tokens: "unloaded", "external", or "embedded".
+     * @type {String}
+     */
     source: "unloaded",
 
     // =========================================================================
-    // 2. RUNTIME DIALOG DEFAULTS
+    // 2. RUNTIME DIALOG DEFAULTS & FALLBACKS
     // =========================================================================
+
+    /**
+     * Default typography parameters applied to ScriptUI dashboard inputs.
+     * @type {Object}
+     */
     dialogDefaults: {
         font: "Noto Sans",
         fontSize: 12,
@@ -22,6 +65,10 @@ var config = {
         scaleRatio: 1.25
     },
 
+    /**
+     * Fallback document metrics used when an unrecognized document size is detected.
+     * @type {Object}
+     */
     fallbackMetrics: {
         name: "Custom",
         formatStr: "Custom",
@@ -33,16 +80,67 @@ var config = {
     },
 
     // =========================================================================
-    // 3. TOKEN CONTAINERS (Hydrated dynamically by 03-token-loader.jsxinc)
+    // 3. DYNAMIC TOKEN CONTAINERS
+    // (Hydrated at runtime by modules/03-token-loader.jsxinc from brand-tokens.json)
     // =========================================================================
+
+    /**
+     * List of supported document dimensions, orientations, and margins.
+     * @type {Array<Object>}
+     */
     pageMatrix: [],
+
+    /**
+     * Stratified document layer hierarchy specifying Z-index and locking rules.
+     * @type {Array<Object>}
+     */
     layerMatrix: [],
+
+    /**
+     * Directory paths and variant mappings for vector artwork and assets.
+     * @type {Object}
+     */
     assetTokens: {},
+
+    /**
+     * Modular typography scale factors, leading multipliers, and reference points.
+     * @type {Object}
+     */
     typographyMatrix: {},
+
+    /**
+     * Granular design tokens for layout radii, tables, lists, and callout containers.
+     * @type {Object}
+     */
     designTokens: {},
+
+    /**
+     * Specimen style definitions rendered by the typography specimen generator.
+     * @type {Array<Object>}
+     */
     specimenStyles: [],
+
+    /**
+     * Available brand color themes (e.g. Blue, Red, Green, Gold, Purple, etc.).
+     * @type {Array<String>}
+     */
     availableThemes: [],
+
+    /**
+     * Process color swatch definitions with RGB and CMYK component values.
+     * @type {Array<Object>}
+     */
     colors: [],
+
+    /**
+     * Multi-stop gradient swatches with color ramp assignments.
+     * @type {Array<Object>}
+     */
     gradients: [],
+
+    /**
+     * Native InDesign style schemas (Paragraph, Character, Object, Table, Cell).
+     * @type {Object}
+     */
     styles: {}
 };

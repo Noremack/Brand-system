@@ -9,78 +9,78 @@
     {
       "module": "01-config.jsxinc",
       "start_offset": 29655,
-      "length": 1506,
-      "sha256": "c4118a15fe4e8d487f71c72f5f81030c880d9f76dadd04484f4b498d2e58836a",
+      "length": 4541,
+      "sha256": "f9011ee52617c57cb042564b288f3aa8aa5ff0dfc3701a0cef021b28e1548df9",
       "exact_contiguous_match": true
     },
     {
       "module": "02-utilities.jsxinc",
-      "start_offset": 31162,
-      "length": 9349,
-      "sha256": "a3503a97f3f194b60e73a83687e43f356a84d897a8e24f7e6b77416e9cef9025",
+      "start_offset": 34197,
+      "length": 14864,
+      "sha256": "91adbb35b7ec41f684ef3a8ae6f27e5f92e6e373a143a81677fffe0d4c288761",
       "exact_contiguous_match": true
     },
     {
       "module": "03-token-loader.jsxinc",
-      "start_offset": 40512,
-      "length": 7999,
-      "sha256": "7bfdec170de81b716d8932cc5c264cfce70ab054afc1ec1fb05e0115a96faf2a",
+      "start_offset": 49062,
+      "length": 9270,
+      "sha256": "b3907c3a5aa60b2ef8849f4cd6d44a4e25563e85730cc885a63f20d19a41e5c6",
       "exact_contiguous_match": true
     },
     {
       "module": "04-cache-manager.jsxinc",
-      "start_offset": 48512,
-      "length": 2949,
-      "sha256": "3c734fb08d60379bb42300e429d8b7a4dd741eecf47c096f42ecf816fbe435ae",
+      "start_offset": 58333,
+      "length": 6763,
+      "sha256": "4a7b54c0b2d7684d11267de538c65cefd6df9d27a9fd6f039b813f97400e1b8d",
       "exact_contiguous_match": true
     },
     {
       "module": "05-style-builder.jsxinc",
-      "start_offset": 51462,
-      "length": 28677,
-      "sha256": "296c01bf9e097fc37c2e6589da3b97d5a4e956db4472de44016ba4f148c3f8c3",
+      "start_offset": 65097,
+      "length": 36223,
+      "sha256": "5b98f4ca636a098f7e7c62443c52f2f949bd96c9a800301c8c170dd3fac93ac5",
       "exact_contiguous_match": true
     },
     {
       "module": "06-layout-engine.jsxinc",
-      "start_offset": 80140,
-      "length": 15763,
-      "sha256": "9a099d99624acb0c4483fccf08f1a405bbcf3437c07c6d50331c40d0f2e57e8c",
+      "start_offset": 101321,
+      "length": 18123,
+      "sha256": "2ec8d1a97622dd55cd3a3da9eda89b7d8797dd03215ea6c49da1ce631ca83742",
       "exact_contiguous_match": true
     },
     {
       "module": "07-asset-injector.jsxinc",
-      "start_offset": 95904,
-      "length": 54114,
-      "sha256": "08bc5de5dce830a8deba2da4e30b7bc17518b4ddbc775851ba24dc1a609fd83b",
+      "start_offset": 119445,
+      "length": 54846,
+      "sha256": "327f599bd6a28d2e6f61e3aa0f18437dcaeda9352abbfe0b6a1d73a667a2f066",
       "exact_contiguous_match": true
     },
     {
       "module": "08-cleanup-protocol.jsxinc",
-      "start_offset": 150019,
-      "length": 6950,
-      "sha256": "fed0851b6d1233bdacb269688c019476f8e31a5a5ea4f54539a0f76ff6f2a1ec",
+      "start_offset": 174292,
+      "length": 10441,
+      "sha256": "3dcdf7a6b2eb2481d973da3c26d8cbf45a4da558177633e92b70368d79451e25",
       "exact_contiguous_match": true
     },
     {
       "module": "09-ui-utils.jsxinc",
-      "start_offset": 156970,
-      "length": 5210,
-      "sha256": "04e00eebe392d35086fe9a815caccaa4dc312d93f7e9bf95b915590f20d93c14",
+      "start_offset": 184734,
+      "length": 7718,
+      "sha256": "9a5058b2437c68bd4948c9eaa3ade43169a94fa18b0a558226229f72c9b6c7fe",
       "exact_contiguous_match": true
     },
     {
       "module": "10-brand-engine.jsxinc",
-      "start_offset": 162181,
-      "length": 44810,
-      "sha256": "87a01b4486c760df499c409ef4150f8d0184bcd9ed945a19df7ac9e5c979c75d",
+      "start_offset": 192453,
+      "length": 45445,
+      "sha256": "7849032567216cc48594022ce05c11ae0fa3149c5337aaeea3df0d2c7a654100",
       "exact_contiguous_match": true
     },
     {
       "module": "11-reports.jsxinc",
-      "start_offset": 206992,
-      "length": 14667,
-      "sha256": "c0e35039b333a6f9fb06110ce299607788edce25970b8b104c6a9fbab0776382",
+      "start_offset": 237899,
+      "length": 15297,
+      "sha256": "17aee990d1c3fd4639c576fde0adce8ccbf4bbeeecbf0913c0262e95a2e8b601",
       "exact_contiguous_match": true
     }
   ]
