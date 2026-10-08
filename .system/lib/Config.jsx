@@ -48,7 +48,15 @@ var config = {
         ],
 
         assetTokens: {
-            footerDirectory: new File($.fileName).parent.parent.fsName + "/Resources/Footers/EPS/",
+            footerDirectory: (function() {
+                try {
+                    var f = (typeof $ !== "undefined" && $.fileName) ? new File($.fileName) : null;
+                    if (f && f.parent && f.parent.parent) {
+                        return (f.parent.parent.fsName || "") + "/Resources/Footers/EPS/";
+                    }
+                } catch (_) {}
+                return "";
+            })(),
             footerVariants: ["Q", "Q-QR", "BA", "BA-QR", "DRFA"],
             textureAlignment: "TOP_CENTER_ANCHOR", // Default for Brand bar - Full and Back Cover
             textureAlignmentSmall: "TOP_CENTER_ANCHOR", // Brand bar - Small
@@ -165,3 +173,190 @@ var config = {
             { "name": "BVRT - Gradient", "type": "Linear", "stops": [{ "color": "BVRT - Dark", "location": 0 }, { "color": "BVRT - Medium", "location": 100 }] }
         ]
     };
+
+    // =========================================================================
+    // 7. DECLARATIVE JSON TOKEN LOADER
+    // =========================================================================
+
+    function findBrandTokensFile(doc) {
+        // 1. Check document folder (Project-level override)
+        if (doc) {
+            var docFolder = "";
+            try {
+                if (doc.saved) {
+                    if (doc.filePath) docFolder = doc.filePath.fsName || doc.filePath;
+                    else if (doc.fullName && doc.fullName.parent) docFolder = doc.fullName.parent.fsName;
+                }
+            } catch (_) {}
+            if (docFolder) {
+                var docFile = new File(docFolder + "/brand-tokens.json");
+                if (docFile.exists) return docFile;
+            }
+        }
+
+        // 2. Check current script root directory
+        var scriptPath = (typeof $ !== "undefined" && $.fileName) ? $.fileName : "";
+        if (scriptPath) {
+            var scriptFile = new File(scriptPath);
+            var dir1 = scriptFile.parent ? scriptFile.parent.fsName : "";
+            var dir2 = (scriptFile.parent && scriptFile.parent.parent) ? scriptFile.parent.parent.fsName : "";
+
+            if (dir2) {
+                var f2 = new File(dir2 + "/brand-tokens.json");
+                if (f2.exists) return f2;
+            }
+            if (dir1) {
+                var f1 = new File(dir1 + "/brand-tokens.json");
+                if (f1.exists) return f1;
+            }
+        }
+
+        // 3. Fallback search in standard InDesign Scripts Panel directories
+        var appData = "";
+        try {
+            if (typeof Folder !== "undefined" && Folder.appData) {
+                appData = Folder.appData.fsName;
+            }
+        } catch (_) {}
+
+        if (appData) {
+            var candidates = [
+                appData + "/Adobe/InDesign/Version 21.0/en_US/Scripts/Scripts Panel/InDesign Brand System/brand-tokens.json",
+                appData + "/Adobe/InDesign/Version 20.0/en_US/Scripts/Scripts Panel/InDesign Brand System/brand-tokens.json",
+                appData + "/Adobe/InDesign/Version 19.0/en_US/Scripts/Scripts Panel/InDesign Brand System/brand-tokens.json"
+            ];
+            for (var c = 0; c < candidates.length; c++) {
+                var candFile = new File(candidates[c]);
+                if (candFile.exists) return candFile;
+            }
+        }
+
+        return null;
+    }
+
+    function stripBom(str) {
+        if (!str) return "";
+        if (str.charCodeAt(0) === 0xFEFF || str.charCodeAt(0) === 65279) {
+            return str.substring(1);
+        }
+        return str;
+    }
+
+    function resolveUiColor(colName) {
+        if (typeof UIColors !== "undefined" && UIColors) {
+            if (typeof colName === "string" && UIColors[colName]) {
+                return UIColors[colName];
+            }
+        }
+        return colName;
+    }
+
+    config.load = function(doc) {
+        var tokensFile = findBrandTokensFile(doc);
+        if (!tokensFile || !tokensFile.exists) {
+            config.source = "embedded-defaults";
+            return false;
+        }
+
+        var content = "";
+        try {
+            tokensFile.encoding = "UTF-8";
+            tokensFile.open("r");
+            content = tokensFile.read();
+            tokensFile.close();
+        } catch (eRead) {
+            try { if (tokensFile.opened) tokensFile.close(); } catch (_) {}
+            config.source = "embedded-defaults";
+            return false;
+        }
+
+        content = stripBom(content);
+        var json = null;
+        try {
+            if (typeof JSON !== "undefined" && JSON.parse) {
+                json = JSON.parse(content);
+            } else {
+                json = eval("(" + content + ")");
+            }
+        } catch (eParse) {
+            config.source = "embedded-defaults";
+            return false;
+        }
+
+        if (!json) {
+            config.source = "embedded-defaults";
+            return false;
+        }
+
+        // Merge loaded tokens into config
+        if (json.systemCalibration && json.systemCalibration.PT_TO_MM) {
+            config.PT_TO_MM = json.systemCalibration.PT_TO_MM;
+        }
+        if (json.pageMatrix && json.pageMatrix.length > 0) {
+            config.pageMatrix = json.pageMatrix;
+        }
+        if (json.fallbackMetrics) {
+            config.fallbackMetrics = json.fallbackMetrics;
+        }
+        if (json.dialogDefaults) {
+            config.dialogDefaults = json.dialogDefaults;
+        }
+        if (json.typographyMatrix) {
+            config.typographyMatrix = json.typographyMatrix;
+        }
+        if (json.designTokens) {
+            config.designTokens = json.designTokens;
+        }
+        if (json.specimenStyles && json.specimenStyles.length > 0) {
+            config.specimenStyles = json.specimenStyles;
+        }
+        if (json.availableThemes && json.availableThemes.length > 0) {
+            config.availableThemes = json.availableThemes;
+        }
+        if (json.colors && json.colors.length > 0) {
+            config.colors = json.colors;
+        }
+        if (json.gradients && json.gradients.length > 0) {
+            config.gradients = json.gradients;
+        }
+
+        // Resolve Layer Colors
+        if (json.layerMatrix && json.layerMatrix.length > 0) {
+            var lm = [];
+            for (var i = 0; i < json.layerMatrix.length; i++) {
+                var item = json.layerMatrix[i];
+                lm.push({
+                    name: item.name,
+                    color: resolveUiColor(item.color),
+                    aliases: item.aliases || []
+                });
+            }
+            config.layerMatrix = lm;
+        }
+
+        // Resolve Asset Tokens
+        if (json.assetTokens) {
+            var scriptDir = (typeof $ !== "undefined" && $.fileName) ? new File($.fileName).parent.parent.fsName : "";
+            var relDir = json.assetTokens.footerRelativeDirectory || "Resources/Footers/EPS/";
+            config.assetTokens = {
+                footerDirectory: scriptDir ? (scriptDir + "/" + relDir) : (config.assetTokens ? config.assetTokens.footerDirectory : ""),
+                footerVariants: json.assetTokens.footerVariants || ["Q", "Q-QR", "BA", "BA-QR", "DRFA"],
+                textureAlignment: json.assetTokens.textureAlignment || "TOP_CENTER_ANCHOR",
+                textureAlignmentSmall: json.assetTokens.textureAlignmentSmall || "TOP_CENTER_ANCHOR",
+                textureAlignmentMedium: json.assetTokens.textureAlignmentMedium || "TOP_CENTER_ANCHOR"
+            };
+        }
+
+        config.source = tokensFile.fsName;
+        return true;
+    };
+
+    config.reload = function(doc) {
+        return config.load(doc);
+    };
+
+    // Automatically execute token load on module initialization
+    try {
+        var activeDoc = (typeof app !== "undefined" && app.documents && app.documents.length > 0) ? app.activeDocument : null;
+        config.load(activeDoc);
+    } catch (_) {}

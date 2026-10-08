@@ -1,0 +1,14 @@
+# Telemetry & Execution Logs
+*.log
+BrandSystem_ContinualLog.txt
+BrandSystem_ContinualLog_old.txt
+.system/BrandSystem_ContinualLog.txt
+.system/BrandSystem_ContinualLog_old.txt
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# InDesign Binary Template Caches
+*.indt
+.system/Resources/*.indt
