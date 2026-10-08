@@ -60,7 +60,7 @@ Because the engine uses a Hybrid Architecture, any changes made to `brand-tokens
   * `09-ui-utils.jsxinc`: ScriptUI dashboard layout and preference persistence.
   * `10-brand-engine.jsxinc`: Master orchestrator, cache verification, and atomic transaction handling.
   * `11-reports.jsxinc`: Structured Markdown & JSON publishing diagnostics and log rotation.
-* **`.system/Resources/`** - Pre-compiled `.indt` format templates and cache manifests.
+* **`templates/`** - Pre-compiled `.indt` format templates and companion `cache-manifest.json` metadata.
 
 ## 🚀 Installation & Usage
 

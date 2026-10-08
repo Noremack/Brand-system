@@ -384,7 +384,7 @@ var BrandSystem = (function() {
                 var pName = scriptParent.name.toLowerCase();
                 rootDir = (pName === "modules" || pName === ".system") ? scriptParent.parent.fsName : scriptParent.fsName;
             }
-            var templateFile = new File(rootDir + "/Resources/" + templateName);
+            var templateFile = new File(rootDir + "/templates/" + templateName); if (!templateFile.exists) templateFile = new File(rootDir + "/Resources/" + templateName);
             if (!templateFile.exists) templateFile = new File(rootDir + "/.system/Resources/" + templateName);
             
             var customTypo = false;
@@ -404,7 +404,7 @@ var BrandSystem = (function() {
                     try {
                         app.scriptArgs.setValue("BrandSystem_Silent", "true");
                         app.doScript(builderScript, ScriptLanguage.JAVASCRIPT);
-                        app.scriptArgs.clear(); templateFile = new File(rootDir + "/Resources/" + templateName); if (!templateFile.exists) templateFile = new File(rootDir + "/.system/Resources/" + templateName);
+                        app.scriptArgs.clear(); templateFile = new File(rootDir + "/templates/" + templateName); if (!templateFile.exists) templateFile = new File(rootDir + "/Resources/" + templateName); if (!templateFile.exists) templateFile = new File(rootDir + "/.system/Resources/" + templateName);
                     } catch(e) {
                         Logger.warn("Template Builder script failed: " + e.message);
                     }

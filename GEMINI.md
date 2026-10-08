@@ -9,7 +9,7 @@ This project is a suite of ExtendScript (ES3) scripts for Adobe InDesign that au
 ## Core Principles
 
 1.  **ES3 JavaScript ONLY:** The InDesign scripting environment is very old. **Do not use `let`, `const`, arrow functions, or other modern JS features.** All code must be ES3-compatible. Use `modules/02-utilities.jsxinc` for standard ES3 polyfills if needed.
-2.  **Hybrid Architecture:** Styles are cached in `.indt` templates within `.system/Resources/`, backed by companion `cache-manifest.json` metadata.
+2.  **Hybrid Architecture:** Styles are cached in `.indt` templates within `templates/`, backed by companion `cache-manifest.json` metadata.
 3.  **Centralized Configuration:** All design tokens (colors, fonts, sizes, scales) are managed in `brand-tokens.json` (with fallback in `modules/01-config.jsxinc`). Avoid hardcoding values in engine or UI scripts.
 
 ## Development Workflow

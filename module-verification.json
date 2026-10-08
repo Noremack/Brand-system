@@ -72,13 +72,13 @@
     {
       "module": "10-brand-engine.jsxinc",
       "start_offset": 162181,
-      "length": 44628,
-      "sha256": "d3e0c878caf89ecf3719ecb5a872bf557ca84d76e94c6a655621e6b227918947",
+      "length": 44810,
+      "sha256": "87a01b4486c760df499c409ef4150f8d0184bcd9ed945a19df7ac9e5c979c75d",
       "exact_contiguous_match": true
     },
     {
       "module": "11-reports.jsxinc",
-      "start_offset": 206810,
+      "start_offset": 206992,
       "length": 14667,
       "sha256": "c0e35039b333a6f9fb06110ce299607788edce25970b8b104c6a9fbab0776382",
       "exact_contiguous_match": true

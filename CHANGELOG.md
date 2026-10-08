@@ -11,6 +11,7 @@
 - **Automated Token Schema Linter (`tools/validate-tokens.js`):** Built dedicated CLI and build-time validator inspecting color space bounds (RGB 0..255, CMYK 0..100), geometry bounds, typography scales, style schema integrity, and table region mappings. Integrated into `tools/assemble.js` to guard all distribution builds.
 - **Cross-Ecosystem Synchronization Test:** Implemented automated test assertion in `tests/test-brand-system.js` verifying that 100% of QGDS styles defined in `brand-tokens.json` (22 paragraph, 7 character, 12 compound object styles) are recognized by the HTML Exporter's AST folding blueprint (`20-compound-folder.jsxinc`).
 - **Dynamic ScriptUI Dialog Refinements:** Replaced hardcoded default theme string fallbacks with dynamic `config.availableThemes[0]` resolution in `Apply Brand System.jsx`, `Batch Generate Base Templates.jsx`, and `Update Brand Templates.jsx`.
+- **Modernized Template Cache Directory (`templates/`):** Replaced legacy hidden `.system/Resources/` directory with a clean top-level `templates/` folder alongside `modules/` for storing pre-compiled `.indt` format templates and `cache-manifest.json` metadata. Added multi-tier resolution in `10-brand-engine.jsxinc` (templates/ -> Resources/ -> legacy fallback) and protected template caches from wipe during distribution synchronization in `tools/assemble.js`.
 - **Unit Test Suite Verification:** All 147 pure-function tests passing across the entire ecosystem. Zero ES3 syntax violations across 41 scripts.
 
 ## [2.3.0] - 2026-10-08

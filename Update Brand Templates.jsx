@@ -50,7 +50,7 @@ var BATCH_PROCESS_ACTIVE = true; // Prevents the UI from launching when the engi
     BrandSystem.Logger.startTimer("Template Builder Execution");
     BrandSystem.Logger.info("Template Builder Mode: " + (isSilent ? "Silent/Auto" : "Manual"));
     
-    var folder = new Folder(new File($.fileName).parent.fsName + "/.system/Resources");
+    var folder = new Folder(new File($.fileName).parent.fsName + "/templates");
     
     if (!folder.exists) {
         folder.create();
