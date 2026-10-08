@@ -2,14 +2,17 @@
 
 ## [2.3.0] - 2026-10-08
 
-### Build Verification, Checksum Auditing & Structured Reporting (Phase 4 & Phase 5)
+### Build Verification, Checksum Auditing & Template Cache Invalidation (Phase 4, Phase 5 & Phase 6)
+- **Template Cache Invalidation & Verification (`isTemplateCacheValid`):** Implemented automated cache validation in `10-brand-engine.jsxinc` using companion `cache-manifest.json` metadata and timestamp comparison against `brand-tokens.json`. Stale, unmanifested `.indt` templates that predate QGDS component standards are automatically bypassed in favor of fresh dynamic generation.
+- **Cache Manifest Generation (`Update Brand Templates.jsx`):** Updated template generation script to write `cache-manifest.json` into template target directories with current `CACHE_VERSION`, active themes, timestamp, and format counts.
+- **Document Version Stamping (`generateTemplate`):** Tagged generated templates and documents with `doc.insertLabel("QGDS_BrandSystem_Version", config.CACHE_VERSION)` for downstream identification and lifecycle management.
 - **Module Verification & Cryptographic Manifest (`module-verification.json`):** Integrated with `tools/assemble.js` to compute SHA-256 cryptographic checksums for all 11 modules, ensuring complete module auditability and tamper protection.
 - **Standalone Monolithic Distribution Bundle (`dist/InDesign Brand System.bundle.jsx`):** Added automated bundle compilation in `tools/assemble.js` for single-file deployment in environments where relative `#include` directives cannot resolve sibling files.
 - **Structured Publishing Diagnostics (`modules/11-reports.jsxinc`):** Introduced a dedicated reporting module (`BrandReports`) with standardized telemetry metrics covering document geometry, swatch/style generation counts, and QGDS export tag audits.
 - **Dual Markdown & JSON Reports:** Supports on-demand export of human-readable Markdown publishing reports (`*-brand-report.md`) and structured JSON telemetry files (`*-brand-report.json`).
 - **Continual Log Rotation & Size Capping:** Enforced strict log rotation capping `BrandSystem_ContinualLog.txt` at 512 KB with automated backup archiving to `BrandSystem_ContinualLog_old.txt`, permanently resolving multi-megabyte disk bloat.
 - **Unified Ecosystem Assembly:** Extended `tools/assemble.js` to build, verify, bundle, and sync all three ecosystem packages (`InDesign HTML exporter`, `InDesign Brand System`, and `InDesign Semantic Styler`).
-- **Test Suite Expansion:** Added automated tests verifying SHA-256 checksums, distribution bundle validity, markdown/json generation, and log rotation (145 of 145 tests passing).
+- **Test Suite Expansion:** Added automated tests verifying SHA-256 checksums, distribution bundle validity, markdown/json generation, log rotation, and template cache invalidation (146 of 146 tests passing).
 
 ## [2.2.0] - 2026-10-08
 

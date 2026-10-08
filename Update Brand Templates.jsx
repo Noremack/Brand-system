@@ -103,6 +103,26 @@ var BATCH_PROCESS_ACTIVE = true; // Prevents the UI from launching when the engi
         }
     }
     
+        // Write cache-manifest.json to declare that all templates in this folder are verified for QGDS
+    try {
+        var manifestFile = new File(folder.fsName + "/cache-manifest.json");
+        if (manifestFile.open("w")) {
+            var manifestObj = {
+                cache_version: BrandSystem.config.CACHE_VERSION || "2.3.0",
+                colorMode: cMode,
+                primaryStyleTheme: pTheme,
+                isReverseMode: userPrefs.isReverseMode,
+                generated_at: new Date().toString(),
+                templateCount: pMatrix.length
+            };
+            manifestFile.write(BrandSystem.BrandReports ? BrandSystem.BrandReports.formatReportJson(manifestObj) : "{}");
+            manifestFile.close();
+            BrandSystem.Logger.info("Updated cache-manifest.json with version " + (BrandSystem.config.CACHE_VERSION || "2.3.0"));
+        }
+    } catch (e) {
+        BrandSystem.Logger.warn("Failed to write cache manifest: " + e.message);
+    }
+
     BrandSystem.Logger.endTimer("Template Builder Execution", "All Templates Saved");
     BrandSystem.Logger.closeProgress();
     if (!isSilent) {

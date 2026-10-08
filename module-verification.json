@@ -9,76 +9,76 @@
     {
       "module": "01-config.jsxinc",
       "start_offset": 98,
-      "length": 15907,
-      "sha256": "cd4f7fccf8d2cb073e1d4aade91865d3a4c9928989499cf41c9764f594f87f26",
+      "length": 15935,
+      "sha256": "9691f2242a653738918412c026e1913f2d5a59cb0bfd54f93c038bda9e1e9921",
       "exact_contiguous_match": true
     },
     {
       "module": "02-utilities.jsxinc",
-      "start_offset": 16006,
+      "start_offset": 16034,
       "length": 9349,
       "sha256": "a3503a97f3f194b60e73a83687e43f356a84d897a8e24f7e6b77416e9cef9025",
       "exact_contiguous_match": true
     },
     {
       "module": "03-token-loader.jsxinc",
-      "start_offset": 25356,
+      "start_offset": 25384,
       "length": 7709,
       "sha256": "2be9e906123a1b529be2680d282ad1c479b2df941be7ca78284c70a221f74630",
       "exact_contiguous_match": true
     },
     {
       "module": "04-cache-manager.jsxinc",
-      "start_offset": 33066,
+      "start_offset": 33094,
       "length": 2949,
       "sha256": "3c734fb08d60379bb42300e429d8b7a4dd741eecf47c096f42ecf816fbe435ae",
       "exact_contiguous_match": true
     },
     {
       "module": "05-style-builder.jsxinc",
-      "start_offset": 36016,
+      "start_offset": 36044,
       "length": 44426,
       "sha256": "52bfe0e5b2ccc5293c99880bdee2f665165c48ee7efb9b5d281c193614b2f904",
       "exact_contiguous_match": true
     },
     {
       "module": "06-layout-engine.jsxinc",
-      "start_offset": 80443,
+      "start_offset": 80471,
       "length": 15763,
       "sha256": "9a099d99624acb0c4483fccf08f1a405bbcf3437c07c6d50331c40d0f2e57e8c",
       "exact_contiguous_match": true
     },
     {
       "module": "07-asset-injector.jsxinc",
-      "start_offset": 96207,
+      "start_offset": 96235,
       "length": 53789,
       "sha256": "651f51ae9643105230218c6d3e2c0705fca95c8023b1d158b0798ab11e22a919",
       "exact_contiguous_match": true
     },
     {
       "module": "08-cleanup-protocol.jsxinc",
-      "start_offset": 149997,
+      "start_offset": 150025,
       "length": 6950,
       "sha256": "fed0851b6d1233bdacb269688c019476f8e31a5a5ea4f54539a0f76ff6f2a1ec",
       "exact_contiguous_match": true
     },
     {
       "module": "09-ui-utils.jsxinc",
-      "start_offset": 156948,
+      "start_offset": 156976,
       "length": 5210,
       "sha256": "04e00eebe392d35086fe9a815caccaa4dc312d93f7e9bf95b915590f20d93c14",
       "exact_contiguous_match": true
     },
     {
       "module": "10-brand-engine.jsxinc",
-      "start_offset": 162159,
-      "length": 41656,
-      "sha256": "3f17b8aa539a4e0c0af9e4b8e03ce895fe7998c6cfbc9b65c3e8e01ec88fe775",
+      "start_offset": 162187,
+      "length": 44296,
+      "sha256": "a293e72e62c49eeae2786025e33c393ce35c7ef839fccb95c98e17a6e9c9fcab",
       "exact_contiguous_match": true
     },
     {
       "module": "11-reports.jsxinc",
-      "start_offset": 203816,
+      "start_offset": 206484,
       "length": 14667,
       "sha256": "c0e35039b333a6f9fb06110ce299607788edce25970b8b104c6a9fbab0776382",
       "exact_contiguous_match": true

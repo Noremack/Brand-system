@@ -242,6 +242,11 @@ var BrandSystem = (function() {
             buildColorEngine(doc, { colorMode: prefs.colorMode || "RGB" }, config.availableThemes);
             buildTypographyEngine(doc, typographySystem, activePrimaryTheme, activeSecondaryTheme, metrics);
             buildObjectEngineDynamic(doc, typographySystem, activePrimaryTheme, prefs.primaryStyleTheme || "Blue");
+            try {
+                if (doc && doc.insertLabel) {
+                    doc.insertLabel("QGDS_BrandSystem_Version", config.CACHE_VERSION || "2.3.0");
+                }
+            } catch (_) {}
         } finally {
             app.scriptPreferences.measurementUnit = oldUnit;
         }
@@ -252,6 +257,55 @@ var BrandSystem = (function() {
      * @param {Document} doc - The active InDesign document.
      * @param {Object} params - The serialized user settings from the UI dialog.
      */
+    /**
+     * Inspects whether a cached .indt template is verified and up-to-date with current QGDS tokens.
+     * Prevents stale pre-QGDS templates from bypassing dynamic style generation.
+     * @param {File} templateFile - ExtendScript File handle for the .indt template.
+     * @param {String} rootDir - Root directory containing Resources/ or .system/Resources/.
+     * @returns {Boolean} True if verified and newer than brand-tokens.json, false otherwise.
+     */
+    function isTemplateCacheValid(templateFile, rootDir) {
+        if (!templateFile || !templateFile.exists) return false;
+
+        // 1. Check for companion cache-manifest.json in the template folder
+        var manifestFolder = templateFile.parent ? templateFile.parent.fsName : "";
+        if (!manifestFolder) return false;
+        var manifestFile = new File(manifestFolder + "/cache-manifest.json");
+        if (!manifestFile.exists) {
+            // Unmanifested templates predate QGDS component standardization
+            return false;
+        }
+
+        // 2. Validate manifest version
+        try {
+            if (manifestFile.open("r")) {
+                var manifestContent = manifestFile.read();
+                manifestFile.close();
+                var expectedVersion = config.CACHE_VERSION || "2.3.0";
+                var versionMatch = manifestContent.match(/"cache_version"\s*:\s*"([^"]+)"/);
+                if (!versionMatch || versionMatch[1] !== expectedVersion) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } catch (_) {
+            return false;
+        }
+
+        // 3. Ensure template is newer than brand-tokens.json
+        try {
+            var tokensFile = findBrandTokensFile(null);
+            if (tokensFile && tokensFile.exists) {
+                if (templateFile.modified && tokensFile.modified && templateFile.modified < tokensFile.modified) {
+                    return false;
+                }
+            }
+        } catch (_) {}
+
+        return true;
+    }
+
     function processDocument(doc, params) {
         if (!doc || !doc.isValid) throw new Error("Invalid document reference passed.");
         var executionReport = (typeof BrandReports !== "undefined") ? BrandReports.createReport(doc, params) : null;
@@ -359,8 +413,13 @@ var BrandSystem = (function() {
                 }
             }
 
+            var templateValid = isTemplateCacheValid(templateFile, rootDir);
+            if (templateFile.exists && !templateValid) {
+                Logger.info("Cached template '" + templateName + "' is unverified or outdated. Bypassing cache to dynamically generate fresh QGDS styles.");
+            }
+
             var stylesLoadedFromTemplate = false;
-            if (templateFile.exists && !customTypo) {
+            if (templateFile.exists && templateValid && !customTypo) {
                 Logger.startTimer("Load Format Template");
                 try {
                     if (params.buildTypography) {
@@ -761,6 +820,7 @@ var BrandSystem = (function() {
         buildDocument: processDocument,
         processSafe: processSafe,
         generateTemplate: generateTemplate,
+        isTemplateCacheValid: isTemplateCacheValid,
         createStyles: createStyles,
         buildTypographyEngine: buildTypographyEngine,
         buildColorEngine: buildColorEngine,
