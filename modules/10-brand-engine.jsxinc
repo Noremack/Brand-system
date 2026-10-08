@@ -396,15 +396,15 @@ var BrandSystem = (function() {
             if (!templateFile.exists && !customTypo) {
                 Logger.info("Format template not found. Triggering Template Builder script...");
                 
-                var myParent = new File($.fileName).parent;
-                var rootDir = (myParent.name.toLowerCase() === ".system") ? myParent.parent.fsName : myParent.fsName;
-                var builderScript = findFuzzyAsset(rootDir, ["Update", "Brand", "Templates"], null, ".jsx");
+                var builderScript = new File(rootDir + "/Update Brand Templates.jsx");
+                if (!builderScript.exists) builderScript = findFuzzyAsset(rootDir, ["Update", "Brand", "Templates"], null, ".jsx");
+                if ((!builderScript || !builderScript.exists) && scriptParent && scriptParent.parent) { var altB = new File(scriptParent.parent.fsName + "/InDesign Brand System/Update Brand Templates.jsx"); if (altB.exists) builderScript = altB; }
                 
                 if (builderScript && builderScript.exists) {
                     try {
                         app.scriptArgs.setValue("BrandSystem_Silent", "true");
                         app.doScript(builderScript, ScriptLanguage.JAVASCRIPT);
-                        app.scriptArgs.clear();
+                        app.scriptArgs.clear(); templateFile = new File(rootDir + "/Resources/" + templateName); if (!templateFile.exists) templateFile = new File(rootDir + "/.system/Resources/" + templateName);
                     } catch(e) {
                         Logger.warn("Template Builder script failed: " + e.message);
                     }
@@ -449,7 +449,7 @@ var BrandSystem = (function() {
                     baselineDesignSize: params.layoutMetrics.baseFont 
                 }; 
 
-                var standardTheme = BrandSystem.StyleBuilder.getThemeColors(params.primaryStyleTheme, false);
+                var standardTheme = StyleBuilder.getThemeColors(params.primaryStyleTheme, false);
                 var reverseTheme = StyleBuilder.getThemeColors(params.primaryStyleTheme, true);
                 var activePrimaryTheme = params.isReverseMode ? reverseTheme : standardTheme;
                 var activeSecondaryTheme = params.isReverseMode ? standardTheme : reverseTheme;
