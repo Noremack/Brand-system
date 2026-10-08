@@ -149,19 +149,55 @@ var Logger = {
         var ext = detail ? " (" + detail + ")" : "";
         this.info("COMPLETED: " + label + " in " + ms + "ms" + ext); 
     },
-    dump: function(errorObj, isSuccess) {
+    dump: function(errorObj, isSuccess, reportObj) {
         var logFile = null;
         try {
-            var scriptFolder = (typeof $ !== "undefined" && $.fileName) ? new File($.fileName).parent.fsName : "";
+            var scriptFolder = "";
+            if (typeof $ !== "undefined" && $.fileName) {
+                var sf = new File($.fileName);
+                if (sf.parent) {
+                    if (sf.parent.name === "modules" || sf.parent.name === "lib") {
+                        scriptFolder = (sf.parent.parent && sf.parent.name === "lib") ? sf.parent.parent.parent.fsName : (sf.parent.parent ? sf.parent.parent.fsName : sf.parent.fsName);
+                    } else {
+                        scriptFolder = sf.parent.fsName;
+                    }
+                }
+            }
             if (scriptFolder) {
-                logFile = new File(scriptFolder + "/BrandSystem_ExecutionLog.txt");
-                logFile.open("w");
+                logFile = new File(scriptFolder + "/BrandSystem_ContinualLog.txt");
+                if (typeof BrandReports !== "undefined" && BrandReports.appendContinualLog) {
+                    return BrandReports.appendContinualLog(logFile, reportObj, this.trace, errorObj);
+                }
+                
+                // Standalone fallback if BrandReports is not yet in scope
+                if (logFile.exists && logFile.length > 512 * 1024) {
+                    var backupLog = new File(scriptFolder + "/BrandSystem_ContinualLog_old.txt");
+                    if (backupLog.exists) try { backupLog.remove(); } catch (_) {}
+                    try { logFile.copy(backupLog); } catch (_) {}
+                    logFile.open("w");
+                } else {
+                    logFile.open("a");
+                }
+                logFile.writeln("\n\n========================================");
+                logFile.writeln("=== BRAND SYSTEM EXECUTION LOG ===");
+                logFile.writeln("Status: " + (isSuccess ? "SUCCESS" : "CRASH"));
+                logFile.writeln("Timestamp: " + new Date().toString());
+                if (errorObj) {
+                    logFile.writeln("\n=== FATAL EXCEPTION ===");
+                    logFile.writeln("Error: " + errorObj.message);
+                    if (errorObj.line) logFile.writeln("Line: " + errorObj.line);
+                }
+                logFile.writeln("\n=== EXECUTION TRACE ===");
                 for (var t = 0; t < this.trace.length; t++) {
                     logFile.writeln(this.trace[t]);
                 }
-                if (errorObj) logFile.writeln("[ERROR] " + errorObj.message);
+                logFile.writeln("========================================");
                 logFile.close();
+                return logFile.fsName;
             }
-        } catch (_) {}
+        } catch (_) {
+            if (logFile) try { logFile.close(); } catch (_) {}
+        }
+        return "";
     }
 };

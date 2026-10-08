@@ -1,7 +1,7 @@
 /* --- MODULE CONTRACT: 10-brand-engine.jsxinc ---
 Purpose: Master orchestrator coordinating color building, typography styling, object generation, and template compilation within atomic transactions.
-Public entry points: BrandSystem (analyze, process, processSafe, generateTemplate, createStyles, buildTypographyEngine, buildColorEngine, buildObjectEngineDynamic, config, Logger).
-Required dependencies: 01-config.jsxinc through 09-ui-utils.jsxinc.
+Public entry points: BrandSystem (analyze, process, processSafe, generateTemplate, createStyles, buildTypographyEngine, buildColorEngine, buildObjectEngineDynamic, config, Logger, BrandReports).
+Required dependencies: 01-config.jsxinc through 09-ui-utils.jsxinc, 11-reports.jsxinc.
 Side effects: Modifies active InDesign document within app.doScript atomic transactions.
 -------------------------------------------------- */
 
@@ -14,6 +14,7 @@ Side effects: Modifies active InDesign document within app.doScript atomic trans
 #include "07-asset-injector.jsxinc"
 #include "08-cleanup-protocol.jsxinc"
 #include "09-ui-utils.jsxinc"
+#include "11-reports.jsxinc"
 
 var BrandSystem = (function() {
 
@@ -253,6 +254,7 @@ var BrandSystem = (function() {
      */
     function processDocument(doc, params) {
         if (!doc || !doc.isValid) throw new Error("Invalid document reference passed.");
+        var executionReport = (typeof BrandReports !== "undefined") ? BrandReports.createReport(doc, params) : null;
         Logger.showProgress("Applying Brand System...");
         Logger.startTimer("Total Execution");
         app.scriptPreferences.enableRedraw = false;
@@ -453,13 +455,29 @@ var BrandSystem = (function() {
                 Logger.warn("=== USER REQUESTED PERFORMANCE REPORT ===");
                 
                 // Update the ContinualLog file
-                var logPath = Logger.dump(null, true);
+                var reportFiles = null;
+                if (executionReport) {
+                    executionReport.durationMs = new Date().getTime() - executionReport.startTime;
+                    try {
+                        var allP = doc.allParagraphStyles;
+                        for (var ps = 0; ps < allP.length; ps++) {
+                            if (allP[ps].styleExportTagMaps && allP[ps].styleExportTagMaps.length > 0) {
+                                executionReport.stats.qgdsStylesTagged++;
+                            } else {
+                                executionReport.stats.qgdsStylesUntagged++;
+                            }
+                        }
+                    } catch (_) {}
+                    reportFiles = BrandReports.writeReport(doc, executionReport);
+                }
+                var logPath = Logger.dump(null, true, executionReport);
                 
                 alert("Performance Report Generated!\n\nYour execution telemetry has been successfully appended to the ContinualLog.\n\nLog Location:\n" + (logPath || "BrandSystem_ContinualLog.txt"));
             }
 
         } catch (e) { 
-            var crashPath = Logger.dump(e, false);
+            if (executionReport) executionReport.status = "FAILED";
+            var crashPath = Logger.dump(e, false, executionReport);
             throw new Error(e.message + "\n\nA diagnostic log has been saved to:\n" + crashPath);
         } finally { 
             app.scriptPreferences.enableRedraw = true;
@@ -748,6 +766,7 @@ var BrandSystem = (function() {
         buildColorEngine: buildColorEngine,
         buildObjectEngineDynamic: buildObjectEngineDynamic,
         config: config,
-        Logger: Logger
+        Logger: Logger,
+        BrandReports: (typeof BrandReports !== "undefined" ? BrandReports : null)
     };
 })();

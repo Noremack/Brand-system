@@ -1,0 +1,339 @@
+/* --- MODULE CONTRACT: 11-reports.jsxinc ---
+Purpose: Structured publishing diagnostics, performance auditing, JSON/Markdown report generation, and continual log file rotation.
+Public entry points: BrandReports (createReport, formatReportMarkdown, formatReportJson, writeReport, rotateLog, appendContinualLog).
+Required dependencies: 01-config.jsxinc, 02-utilities.jsxinc.
+Side effects: Writes diagnostic report files to disk and caps log file sizes to prevent disk bloat.
+-------------------------------------------------- */
+
+var BrandReports = (function() {
+
+    /**
+     * Factory function initializing a blank execution report structure.
+     * @param {Document} doc - The active InDesign document (optional).
+     * @param {Object} params - User execution parameters (optional).
+     * @returns {Object} Structured report data object.
+     */
+    function createReport(doc, params) {
+        var p = params || {};
+        var docName = "Untitled";
+        var docPath = "";
+        var pageCount = 0;
+        var widthMm = 0;
+        var heightMm = 0;
+
+        if (doc && doc.isValid) {
+            try { docName = doc.name; } catch (_) {}
+            try { if (doc.saved) docPath = doc.fullName.fsName; } catch (_) {}
+            try { pageCount = doc.pages.length; } catch (_) {}
+            try {
+                if (doc.documentPreferences) {
+                    widthMm = Math.round(doc.documentPreferences.pageWidth);
+                    heightMm = Math.round(doc.documentPreferences.pageHeight);
+                }
+            } catch (_) {}
+        }
+
+        return {
+            title: "Queensland Government Design System — Brand Publishing Report",
+            version: "2.3.0",
+            timestamp: new Date().toString(),
+            startTime: new Date().getTime(),
+            durationMs: 0,
+            status: "SUCCESS",
+            document: {
+                name: docName,
+                path: docPath,
+                pages: pageCount,
+                dimensions: widthMm && heightMm ? (widthMm + " x " + heightMm + " mm") : "Unknown",
+                colorMode: p.colorMode || "RGB",
+                theme: (p.themes && p.themes.length > 0) ? p.themes.join(", ") : (p.theme || "Blue"),
+                reverseMode: Boolean(p.reverseMode),
+                preset: p.presetName || "Standard"
+            },
+            stats: {
+                swatchesCreated: 0,
+                swatchesUpdated: 0,
+                gradientsCreated: 0,
+                paragraphStylesCreated: 0,
+                characterStylesCreated: 0,
+                objectStylesCreated: 0,
+                cellStylesCreated: 0,
+                tableStylesCreated: 0,
+                masterPagesCreated: 0,
+                assetsPlaced: 0,
+                assetsMissing: 0,
+                qgdsStylesTagged: 0,
+                qgdsStylesUntagged: 0
+            },
+            warnings: [],
+            errors: [],
+            trace: []
+        };
+    }
+
+    /**
+     * Formats an execution report into a GitHub-Flavored Markdown report.
+     * @param {Object} report - The populated report object.
+     * @returns {String} Formatted markdown text.
+     */
+    function formatReportMarkdown(report) {
+        if (!report) return "# Empty Report\n";
+
+        var lines = [];
+        lines.push("# " + report.title);
+        lines.push("");
+        lines.push("> **Status:** " + (report.status === "SUCCESS" ? "✓ SUCCESS" : "✗ FAILED") + "  ");
+        lines.push("> **Generated:** " + report.timestamp + "  ");
+        lines.push("> **Execution Duration:** " + report.durationMs + " ms  ");
+        lines.push("");
+
+        lines.push("## Document Profile");
+        lines.push("");
+        lines.push("| Attribute | Value |");
+        lines.push("|---|---|");
+        lines.push("| Document Name | " + report.document.name + " |");
+        lines.push("| Document Path | " + (report.document.path || "*Unsaved Document*") + " |");
+        lines.push("| Page Count | " + report.document.pages + " |");
+        lines.push("| Dimensions | " + report.document.dimensions + " |");
+        lines.push("| Color Space | " + report.document.colorMode + " |");
+        lines.push("| Active Theme | " + report.document.theme + " |");
+        lines.push("| Reverse Mode | " + (report.document.reverseMode ? "Yes" : "No") + " |");
+        lines.push("");
+
+        lines.push("## Generation Metrics");
+        lines.push("");
+        lines.push("| Component Type | Created / Updated |");
+        lines.push("|---|---:|");
+        lines.push("| Swatches & Colors | " + (report.stats.swatchesCreated + report.stats.swatchesUpdated) + " |");
+        lines.push("| Gradients | " + report.stats.gradientsCreated + " |");
+        lines.push("| Paragraph Styles | " + report.stats.paragraphStylesCreated + " |");
+        lines.push("| Character Styles | " + report.stats.characterStylesCreated + " |");
+        lines.push("| Object Styles | " + report.stats.objectStylesCreated + " |");
+        lines.push("| Table & Cell Styles | " + (report.stats.tableStylesCreated + report.stats.cellStylesCreated) + " |");
+        lines.push("| Master Spreads Built | " + report.stats.masterPagesCreated + " |");
+        lines.push("| Placed Vector Assets | " + report.stats.assetsPlaced + " |");
+        lines.push("");
+
+        lines.push("## QGDS HTML Export Alignment");
+        lines.push("");
+        lines.push("| Export Tagging Category | Count | Status |");
+        lines.push("|---|---:|---|");
+        lines.push("| Styles with EPUB ExportTagMap | " + report.stats.qgdsStylesTagged + " | ✓ Tagged |");
+        lines.push("| Unmapped Styles | " + report.stats.qgdsStylesUntagged + " | " + (report.stats.qgdsStylesUntagged > 0 ? "⚠️ Review Needed" : "✓ None") + " |");
+        lines.push("");
+
+        if (report.warnings.length > 0) {
+            lines.push("## Warnings (" + report.warnings.length + ")");
+            lines.push("");
+            for (var w = 0; w < report.warnings.length; w++) {
+                lines.push("- ⚠️ " + report.warnings[w]);
+            }
+            lines.push("");
+        }
+
+        if (report.errors.length > 0) {
+            lines.push("## Errors (" + report.errors.length + ")");
+            lines.push("");
+            for (var e = 0; e < report.errors.length; e++) {
+                lines.push("- ❌ " + report.errors[e]);
+            }
+            lines.push("");
+        }
+
+        lines.push("---");
+        lines.push("*Generated by Queensland Government InDesign Brand System (Modular Pipeline)*");
+        lines.push("");
+
+        return lines.join("\n");
+    }
+
+    /**
+     * Serializes report data object to JSON (ES3-safe serializer).
+     * @param {Object} report - The report object.
+     * @returns {String} JSON string representation.
+     */
+    function formatReportJson(report) {
+        if (!report) return "{}";
+        
+        function serialize(val, indent) {
+            if (val === null) return "null";
+            var type = typeof val;
+            if (type === "number" || type === "boolean") return String(val);
+            if (type === "string") {
+                return '"' + val.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t") + '"';
+            }
+            if (val instanceof Array) {
+                if (val.length === 0) return "[]";
+                var items = [];
+                var nextIndent = indent + "  ";
+                for (var i = 0; i < val.length; i++) {
+                    items.push(nextIndent + serialize(val[i], nextIndent));
+                }
+                return "[\n" + items.join(",\n") + "\n" + indent + "]";
+            }
+            if (type === "object") {
+                var props = [];
+                var nextInd = indent + "  ";
+                for (var k in val) {
+                    if (val.hasOwnProperty(k)) {
+                        props.push(nextInd + '"' + k + '": ' + serialize(val[k], nextInd));
+                    }
+                }
+                if (props.length === 0) return "{}";
+                return "{\n" + props.join(",\n") + "\n" + indent + "}";
+            }
+            return "null";
+        }
+
+        return serialize(report, "");
+    }
+
+    /**
+     * Safely rotates a log file if its size exceeds maxBytes (default 512 KB).
+     * Moves existing log to [logName]_old.txt and initializes a fresh log file.
+     * @param {File} logFile - ExtendScript File handle.
+     * @param {Number} maxBytes - Maximum byte size before rotation (default 524,288).
+     * @returns {Boolean} True if rotated, false if not needed or failed.
+     */
+    function rotateLog(logFile, maxBytes) {
+        if (!logFile) return false;
+        var limit = maxBytes || (512 * 1024); // 512 KB cap
+        try {
+            if (logFile.exists && logFile.length > limit) {
+                var folderPath = logFile.parent ? logFile.parent.fsName : "";
+                var baseName = logFile.name.replace(/\.[^.]+$/, "");
+                var ext = logFile.name.indexOf(".") !== -1 ? logFile.name.substring(logFile.name.lastIndexOf(".")) : ".txt";
+                var backupFile = new File(folderPath + "/" + baseName + "_old" + ext);
+
+                if (backupFile.exists) {
+                    try { backupFile.remove(); } catch (_) {}
+                }
+                try { logFile.copy(backupFile); } catch (_) {}
+                logFile.open("w");
+                logFile.writeln("# Log rotated on " + new Date().toString() + " (Previous log archived to " + backupFile.name + ")");
+                logFile.close();
+                return true;
+            }
+        } catch (_) {}
+        return false;
+    }
+
+    /**
+     * Appends an execution entry to the ContinualLog file with automatic size capping.
+     * @param {File} logFile - File handle for the continual log.
+     * @param {Object} report - Execution report object.
+     * @param {Array} traceLines - Array of string trace lines from Logger.
+     * @param {Error} errorObj - Fatal exception object (optional).
+     * @returns {String} File path of the log.
+     */
+    function appendContinualLog(logFile, report, traceLines, errorObj) {
+        if (!logFile) return "";
+        try {
+            rotateLog(logFile, 512 * 1024);
+
+            var ok = logFile.open("a");
+            if (!ok) return logFile.fsName;
+
+            logFile.writeln("\n\n========================================");
+            logFile.writeln("=== BRAND SYSTEM EXECUTION REPORT ===");
+            logFile.writeln("Status: " + (errorObj ? "FAILED" : (report ? report.status : "SUCCESS")));
+            logFile.writeln("Timestamp: " + new Date().toString());
+            if (report && report.durationMs) logFile.writeln("Duration: " + report.durationMs + " ms");
+            if (report && report.document) {
+                logFile.writeln("Document: " + report.document.name + " (" + report.document.dimensions + ", " + report.document.theme + ")");
+            }
+            if (typeof app !== "undefined") logFile.writeln("InDesign: " + app.version);
+            if (typeof $ !== "undefined") logFile.writeln("ExtendScript OS: " + $.os);
+
+            if (report && report.stats) {
+                logFile.writeln("Metrics: Swatches=" + (report.stats.swatchesCreated + report.stats.swatchesUpdated) +
+                    ", ParagraphStyles=" + report.stats.paragraphStylesCreated +
+                    ", CharacterStyles=" + report.stats.characterStylesCreated +
+                    ", ObjectStyles=" + report.stats.objectStylesCreated +
+                    ", Masters=" + report.stats.masterPagesCreated);
+            }
+
+            if (errorObj) {
+                logFile.writeln("\n=== FATAL EXCEPTION ===");
+                logFile.writeln("Error: " + errorObj.message);
+                if (errorObj.line) logFile.writeln("Line: " + errorObj.line);
+            }
+
+            if (traceLines && traceLines.length > 0) {
+                logFile.writeln("\n=== EXECUTION TRACE ===");
+                for (var t = 0; t < traceLines.length; t++) {
+                    logFile.writeln(traceLines[t]);
+                }
+            }
+            logFile.writeln("========================================");
+            logFile.close();
+            return logFile.fsName;
+        } catch (_) {
+            try { logFile.close(); } catch (_) {}
+            return logFile.fsName || "";
+        }
+    }
+
+    /**
+     * Writes publication reports (*-brand-report.md and *-brand-report.json) to disk.
+     * @param {Document} doc - Active InDesign document.
+     * @param {Object} report - Populated report object.
+     * @param {String} outputFolder - Target folder path (optional).
+     * @returns {Object} { markdownPath: String, jsonPath: String }
+     */
+    function writeReport(doc, report, outputFolder) {
+        var result = { markdownPath: "", jsonPath: "" };
+        if (!report) return result;
+
+        var targetDir = outputFolder || "";
+        if (!targetDir && doc && doc.saved) {
+            try { targetDir = doc.filePath.fsName || doc.filePath; } catch (_) {}
+            if (!targetDir && doc.fullName && doc.fullName.parent) {
+                targetDir = doc.fullName.parent.fsName;
+            }
+        }
+        if (!targetDir) {
+            try {
+                if (typeof Folder !== "undefined" && Folder.desktop) {
+                    targetDir = Folder.desktop.fsName;
+                }
+            } catch (_) {}
+        }
+        if (!targetDir) return result;
+
+        var baseName = (doc && doc.name) ? doc.name.replace(/\.[^.]+$/, "") : "BrandSystem";
+        
+        // 1. Write Markdown report
+        try {
+            var mdFile = new File(targetDir + "/" + baseName + "-brand-report.md");
+            mdFile.encoding = "UTF-8";
+            if (mdFile.open("w")) {
+                mdFile.write(formatReportMarkdown(report));
+                mdFile.close();
+                result.markdownPath = mdFile.fsName;
+            }
+        } catch (_) {}
+
+        // 2. Write JSON report
+        try {
+            var jsonFile = new File(targetDir + "/" + baseName + "-brand-report.json");
+            jsonFile.encoding = "UTF-8";
+            if (jsonFile.open("w")) {
+                jsonFile.write(formatReportJson(report));
+                jsonFile.close();
+                result.jsonPath = jsonFile.fsName;
+            }
+        } catch (_) {}
+
+        return result;
+    }
+
+    return {
+        createReport: createReport,
+        formatReportMarkdown: formatReportMarkdown,
+        formatReportJson: formatReportJson,
+        writeReport: writeReport,
+        rotateLog: rotateLog,
+        appendContinualLog: appendContinualLog
+    };
+})();
